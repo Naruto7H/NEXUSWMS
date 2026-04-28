@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Package, ShoppingCart, Truck, Settings, Search, Bell, Sun, Moon, Menu, ChevronLeft } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isDark, toggleTheme } = useTheme();
+  
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setIsProfileOpen(false);
+    alert("Logged out successfully.");
+    navigate('/dashboard'); // In a real app, this would route to '/login'
+  };
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -18,6 +28,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans overflow-hidden transition-colors duration-200">
+      
       {/* Sidebar */}
       <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} flex-shrink-0 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 flex flex-col z-20`}>
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700">
@@ -56,17 +67,66 @@ export default function DashboardLayout() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 relative">
             <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            <button className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 relative transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-800"></span>
-            </button>
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-sm ml-2 cursor-pointer">
-              SN
+            
+            {/* Notification Dropdown */}
+            <div className="relative">
+              <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 relative transition-colors">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+              </button>
+              {isNotifOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsNotifOpen(false)}></div>
+                  <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden animate-in slide-in-from-top-2">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                      <span className="font-semibold text-slate-900 dark:text-white">Notifications</span>
+                      <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer">Mark all read</span>
+                    </div>
+                    <div className="p-4 text-sm text-slate-500 dark:text-slate-400">
+                      <div className="mb-3 border-b border-slate-100 dark:border-slate-700 pb-3">
+                        <p className="text-slate-900 dark:text-slate-100 font-medium mb-0.5">PO-8472 Approved</p>
+                        <p className="text-xs">Your purchase order for Al Ain Farms has been approved.</p>
+                      </div>
+                      <div>
+                        <p className="text-rose-600 dark:text-rose-400 font-medium mb-0.5">Low Stock Alert</p>
+                        <p className="text-xs">Fresh Norwegian Salmon is below minimum threshold.</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
+
+            {/* Profile Dropdown */}
+            <div className="relative border-l border-slate-200 dark:border-slate-700 pl-4 ml-2">
+              <div onClick={() => setIsProfileOpen(!isProfileOpen)} className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-sm cursor-pointer hover:ring-2 ring-indigo-200 dark:ring-indigo-900 transition-all">
+                SN
+              </div>
+              {isProfileOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)}></div>
+                  <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden animate-in slide-in-from-top-2">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Suhail Nizar</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">suhail.nizar@nexawms.com</p>
+                    </div>
+                    <div className="p-1.5">
+                      <Link to="/settings" onClick={() => setIsProfileOpen(false)} className="block w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors">
+                        Account Settings
+                      </Link>
+                      <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-md transition-colors mt-1">
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
           </div>
         </header>
 
