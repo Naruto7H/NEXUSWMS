@@ -7,7 +7,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import PurchaseOrders from './pages/PurchaseOrders';
-import CreatePO from './pages/CreatePO'; // ADDED IMPORT
+import CreatePO from './pages/CreatePO';
 import Suppliers from './pages/Suppliers';
 import WarehouseMap from './pages/WarehouseMap';
 import DockSchedule from './pages/DockSchedule';
