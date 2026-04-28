@@ -1,5 +1,5 @@
 import React from 'react';
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, YAxis } from 'recharts';
 import { ArrowUpRight, ArrowDownRight, MoreHorizontal } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -8,7 +8,10 @@ const KPICard = ({ title, value, change, isPositive, data, icon: Icon }) => {
   
   // Dynamic color variables based on performance
   const strokeColor = isPositive ? (isDark ? '#34d399' : '#10b981') : (isDark ? '#fb7185' : '#e11d48');
-  const gradientId = `kpi-gradient-${title.replace(/\s+/g, '-').toLowerCase()}`;
+  
+  // Clean the title to create a valid SVG ID (removes symbols like < or >)
+  const safeId = title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const gradientId = `kpi-gradient-${safeId}`;
 
   return (
     <div className="p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow group relative overflow-hidden">
@@ -49,6 +52,8 @@ const KPICard = ({ title, value, change, isPositive, data, icon: Icon }) => {
                   <stop offset="95%" stopColor={strokeColor} stopOpacity={0}/>
                 </linearGradient>
               </defs>
+              {/* Hidden Y-Axis forces Recharts to calculate the bounds properly */}
+              <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
               <Area 
                 type="monotone" 
                 dataKey="value" 
