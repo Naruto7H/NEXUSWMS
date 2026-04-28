@@ -11,11 +11,23 @@ import Suppliers from './pages/Suppliers';
 import Settings from './pages/Settings';
 import RequireRole from './components/auth/RequireRole';
 
+// Import New Auth & Error Pages
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import NotFound from './pages/NotFound';
+
 export default function App() {
   return (
     <ThemeProvider>
       <Router>
         <Routes>
+          {/* Public Auth Routes (No Sidebar layout) */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
+          {/* Protected Application Routes (Inside Dashboard Layout) */}
           <Route path="/" element={<DashboardLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
@@ -23,17 +35,18 @@ export default function App() {
             <Route path="po" element={<PurchaseOrders />} />
             <Route path="suppliers" element={<Suppliers />} />
             
-            {/* Protected Route: Only Admins and Central Buyers can access Settings */}
             <Route path="settings" element={
               <RequireRole allowedRoles={['Admin', 'Central Buyer']} fallback="redirect">
                 <Settings />
               </RequireRole>
             } />
           </Route>
+
+          {/* Catch-all 404 Route */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
 
-      {/* Global Toast Container for System Alerts */}
       <Toaster 
         position="bottom-right"
         toastOptions={{
