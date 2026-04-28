@@ -9,6 +9,7 @@ import Inventory from './pages/Inventory';
 import PurchaseOrders from './pages/PurchaseOrders';
 import Suppliers from './pages/Suppliers';
 import Settings from './pages/Settings';
+import BlankPage from './pages/BlankPage';
 
 // Import New Auth & Error Pages
 import Login from './pages/auth/Login';
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="inventory" element={<Inventory />} />
             <Route path="po" element={<PurchaseOrders />} />
             <Route path="suppliers" element={<Suppliers />} />
+            <Route path="blank" element={<BlankPage />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 
