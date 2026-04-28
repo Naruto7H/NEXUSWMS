@@ -40,14 +40,19 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       
-      {/* Header & Quick Actions - Updated for Mobile Responsiveness */}
+      {/* Header & Quick Actions */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Central Procurement Dashboard</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Supermarket Division Metrics & Shelf-Life Alerts.</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
-          <Link to="/inventory" className="flex-1 md:flex-none flex justify-center items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+          {/* Linked with state to auto-open scanner on the Inventory page */}
+          <Link 
+            to="/inventory" 
+            state={{ openScanner: true }} 
+            className="flex-1 md:flex-none flex justify-center items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          >
             <ScanLine className="w-4 h-4" /> Scan
           </Link>
           <Link to="/po" className="flex-1 md:flex-none flex justify-center items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
