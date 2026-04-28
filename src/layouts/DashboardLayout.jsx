@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Truck, Settings, Search, Bell, Sun, Moon, Menu, ChevronLeft, X, FileText } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Truck, Settings, Search, Bell, Sun, Moon, Menu, ChevronLeft, X, FileText, Layers } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export default function DashboardLayout() {
@@ -31,6 +31,7 @@ export default function DashboardLayout() {
     { icon: ShoppingCart, label: 'Purchase Orders', path: '/po' },
     { icon: Truck, label: 'Suppliers', path: '/suppliers' },
     { icon: FileText, label: 'Blank Page', path: '/blank' },
+    { icon: Layers, label: 'UI Toolkit', path: '/uikit' },
     { icon: Settings, label: 'Settings', path: '/settings' }
   ];
 
@@ -103,7 +104,7 @@ export default function DashboardLayout() {
             {/* Search Bar */}
             <div className="relative w-full sm:w-64 lg:w-80 flex-1">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-              <input type="text" placeholder="Search SKU, PO..." className="pl-9 pr-4 py-2 w-full bg-slate-100 dark:bg-slate-900 border-transparent focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-lg text-sm outline-none transition-all" />
+              <input type="text" placeholder="Search SKU, PO..." className="pl-9 pr-4 py-2 w-full bg-slate-100 dark:bg-slate-900 border-transparent focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-lg text-sm outline-none transition-all dark:text-white" />
             </div>
           </div>
           
