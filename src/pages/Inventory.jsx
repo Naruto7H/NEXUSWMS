@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom'; // <-- 1. Import useLocation
 import { inventoryApi } from '../services/api';
 import { Search, Filter, Download, AlertTriangle, ScanLine } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -12,6 +13,17 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  
+  const location = useLocation(); // <-- 2. Initialize location hook
+
+  // 3. Listen for the "openScanner" command from the Dashboard
+  useEffect(() => {
+    if (location.state?.openScanner) {
+      setIsScannerOpen(true);
+      // Clear the state so it doesn't keep reopening if the user refreshes the page
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     inventoryApi.getInventory().then(data => {
