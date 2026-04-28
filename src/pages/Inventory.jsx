@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import StatusBadge from '../components/ui/StatusBadge';
 import TableSkeleton from '../components/ui/TableSkeleton';
 import BarcodeScannerModal from '../components/scanner/BarcodeScannerModal';
+import Pagination from '../components/ui/Pagination';
 
 export default function Inventory() {
   const [inventory, setInventory] = useState([]);
