@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, MoreVertical, Plus, ArrowUpDown } from 'lucide-react';
+import { Search, Filter, MoreVertical, Plus, ArrowUpDown, CheckCircle2, X, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import StatusBadge from '../components/ui/StatusBadge';
@@ -17,6 +17,30 @@ const initialOrders = [
 
 export default function PurchaseOrders() {
   const [orders, setOrders] = useState(initialOrders);
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // --- Bulk Selection Logic ---
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(orders.map(o => o.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(item => item !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleBulkApprove = () => {
+    setOrders(orders.map(o => selectedIds.includes(o.id) ? { ...o, status: 'Approved' } : o));
+    toast.success(`${selectedIds.length} purchase orders approved successfully.`);
+    setSelectedIds([]); // Clear selection after action
+  };
 
   const handleApprove = (id) => {
     setOrders(orders.map(o => o.id === id ? { ...o, status: 'Approved' } : o));
@@ -24,7 +48,7 @@ export default function PurchaseOrders() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-10 relative">
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -51,25 +75,26 @@ export default function PurchaseOrders() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-6 py-4 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
-                  <div className="flex items-center justify-between">
-                    PO Number <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
-                  </div>
+                {/* Master Checkbox */}
+                <th className="px-6 py-4 w-12">
+                  <input 
+                    type="checkbox" 
+                    onChange={handleSelectAll}
+                    checked={selectedIds.length === orders.length && orders.length > 0}
+                    className="w-4 h-4 text-indigo-600 bg-white border-slate-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-slate-800 dark:bg-slate-700 dark:border-slate-600 cursor-pointer"
+                  />
                 </th>
                 <th className="px-6 py-4 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
-                  <div className="flex items-center justify-between">
-                    Supplier Name <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
-                  </div>
+                  <div className="flex items-center justify-between">PO Number <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" /></div>
                 </th>
                 <th className="px-6 py-4 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
-                  <div className="flex items-center justify-between">
-                    Date <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
-                  </div>
+                  <div className="flex items-center justify-between">Supplier Name <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" /></div>
                 </th>
                 <th className="px-6 py-4 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
-                  <div className="flex items-center justify-between">
-                    Amount <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
-                  </div>
+                  <div className="flex items-center justify-between">Date <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" /></div>
+                </th>
+                <th className="px-6 py-4 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
+                  <div className="flex items-center justify-between">Amount <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" /></div>
                 </th>
                 <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
@@ -77,7 +102,16 @@ export default function PurchaseOrders() {
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
               {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <tr key={order.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${selectedIds.includes(order.id) ? 'bg-indigo-50/50 dark:bg-indigo-500/5' : ''}`}>
+                  {/* Row Checkbox */}
+                  <td className="px-6 py-4">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.includes(order.id)}
+                      onChange={() => handleSelectOne(order.id)}
+                      className="w-4 h-4 text-indigo-600 bg-white border-slate-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-slate-800 dark:bg-slate-700 dark:border-slate-600 cursor-pointer"
+                    />
+                  </td>
                   <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{order.id}</td>
                   <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{order.supplier}</td>
                   <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{order.date}</td>
@@ -104,12 +138,36 @@ export default function PurchaseOrders() {
           </table>
         </div>
 
-        {/* Clean, Reusable Pagination Component */}
         <div className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
           <Pagination totalItems={32} itemsPerPage={orders.length} />
         </div>
-
       </div>
+
+      {/* Floating Action Bar */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-800 border border-slate-800 dark:border-slate-700 shadow-2xl rounded-2xl px-5 py-3 flex items-center gap-4 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
+          <div className="flex items-center gap-3 border-r border-slate-700 pr-5">
+            <span className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-inner">
+              {selectedIds.length}
+            </span>
+            <span className="text-sm font-medium text-slate-200">Selected</span>
+          </div>
+          
+          <div className="flex items-center gap-2 pr-2">
+            <button onClick={handleBulkApprove} className="text-sm font-medium text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" /> Bulk Approve
+            </button>
+            <button onClick={() => toast.success('Exporting selected records...')} className="text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
+              <Download className="w-4 h-4" /> Export CSV
+            </button>
+          </div>
+          
+          <button onClick={() => setSelectedIds([])} className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-white transition-colors border-l border-slate-700 pl-4 ml-1">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }
