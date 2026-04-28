@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import PurchaseOrders from './pages/PurchaseOrders';
 import Suppliers from './pages/Suppliers';
+import WarehouseMap from './pages/WarehouseMap';
 import Settings from './pages/Settings';
 import BlankPage from './pages/BlankPage';
 import UIKit from './pages/UIKit';
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="inventory" element={<Inventory />} />
             <Route path="po" element={<PurchaseOrders />} />
             <Route path="suppliers" element={<Suppliers />} />
+            <Route path="map" element={<WarehouseMap />} />
             <Route path="blank" element={<BlankPage />} />
             <Route path="settings" element={<Settings />} />
             <Route path="uikit" element={<UIKit />} />
