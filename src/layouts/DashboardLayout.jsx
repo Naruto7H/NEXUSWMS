@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Truck, Settings, Search, Bell, Sun, Moon, Menu, ChevronLeft, X, FileText, Layers } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Truck, Settings, Search, Bell, Sun, Moon, Menu, ChevronLeft, X, FileText, Layers, Calendar, Map } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { Map } from 'lucide-react';
 
@@ -31,6 +31,7 @@ export default function DashboardLayout() {
     { icon: Package, label: 'Inventory (WMS)', path: '/inventory' },
     { icon: ShoppingCart, label: 'Purchase Orders', path: '/po' },
     { icon: Truck, label: 'Suppliers', path: '/suppliers' },
+    { icon: Calendar, label: 'Dock Schedule', path: '/schedule' },
     { icon: Map, label: 'Warehouse Map', path: '/map' },
     { icon: FileText, label: 'Blank Page', path: '/blank' },
     { icon: Layers, label: 'UI Toolkit', path: '/uikit' },
