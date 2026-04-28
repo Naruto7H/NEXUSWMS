@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, Star, ExternalLink, Mail, Building2, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Star, ExternalLink, Mail, Building2, Filter } from 'lucide-react';
+import Pagination from '../components/ui/Pagination';
 
 const mockSuppliers = [
   { id: 'VND-001', name: 'Al Ain Farms', category: 'Dairy & Chill', rating: 4.8, activePOs: 3, spend: '$142k' },
@@ -119,23 +120,8 @@ export default function Suppliers() {
 
       {/* Grid Pagination Footer (Only visible if there are results) */}
       {filteredSuppliers.length > 0 && (
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-          <div className="text-sm text-slate-500 dark:text-slate-400">
-            Showing <span className="font-medium text-slate-900 dark:text-white">1</span> to <span className="font-medium text-slate-900 dark:text-white">{filteredSuppliers.length}</span> of <span className="font-medium text-slate-900 dark:text-white">45</span> vendors
-          </div>
-          <div className="flex items-center gap-1">
-            <button className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" disabled>
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-medium text-sm flex items-center justify-center">1</button>
-            <button className="w-8 h-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm flex items-center justify-center transition-colors">2</button>
-            <button className="w-8 h-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm flex items-center justify-center transition-colors">3</button>
-            <span className="text-slate-400 px-1">...</span>
-            <button className="w-8 h-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm flex items-center justify-center transition-colors">5</button>
-            <button className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
+        <div className="mt-6 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+          <Pagination totalItems={45} itemsPerPage={filteredSuppliers.length} />
         </div>
       )}
     </div>
