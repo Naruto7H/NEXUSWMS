@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Star, ExternalLink, Mail, Building2, Filter } from 'lucide-react';
+import { Search, Star, ExternalLink, Mail, Building2, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const mockSuppliers = [
   { id: 'VND-001', name: 'Al Ain Farms', category: 'Dairy & Chill', rating: 4.8, activePOs: 3, spend: '$142k' },
@@ -13,10 +13,8 @@ export default function Suppliers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
 
-  // Dynamically extract unique categories from the mock data
   const categories = ['All Categories', ...new Set(mockSuppliers.map(s => s.category))];
 
-  // Filter logic based on both search input and category selection
   const filteredSuppliers = mockSuppliers.filter(vendor => {
     const matchesSearch = vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           vendor.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -32,10 +30,7 @@ export default function Suppliers() {
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage and contact your approved vendors.</p>
       </div>
 
-      {/* Filters & Search Toolbar */}
       <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row gap-4 relative z-10">
-        
-        {/* Search Bar */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -47,7 +42,6 @@ export default function Suppliers() {
           />
         </div>
 
-        {/* Category Dropdown */}
         <div className="relative min-w-[200px]">
           <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <select
@@ -59,14 +53,12 @@ export default function Suppliers() {
               <option key={category} value={category}>{category}</option>
             ))}
           </select>
-          {/* Custom chevron for consistent styling across browsers */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
           </div>
         </div>
       </div>
 
-      {/* Suppliers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-0">
         {filteredSuppliers.length > 0 ? (
           filteredSuppliers.map(vendor => (
@@ -107,7 +99,6 @@ export default function Suppliers() {
             </div>
           ))
         ) : (
-          /* Empty State - when filtering/searching yields no results */
           <div className="col-span-full py-16 flex flex-col items-center justify-center text-center bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 border-dashed">
             <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4">
               <Building2 className="w-8 h-8 text-slate-400 dark:text-slate-500" />
@@ -125,6 +116,28 @@ export default function Suppliers() {
           </div>
         )}
       </div>
+
+      {/* Grid Pagination Footer (Only visible if there are results) */}
+      {filteredSuppliers.length > 0 && (
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="text-sm text-slate-500 dark:text-slate-400">
+            Showing <span className="font-medium text-slate-900 dark:text-white">1</span> to <span className="font-medium text-slate-900 dark:text-white">{filteredSuppliers.length}</span> of <span className="font-medium text-slate-900 dark:text-white">45</span> vendors
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" disabled>
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-medium text-sm flex items-center justify-center">1</button>
+            <button className="w-8 h-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm flex items-center justify-center transition-colors">2</button>
+            <button className="w-8 h-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm flex items-center justify-center transition-colors">3</button>
+            <span className="text-slate-400 px-1">...</span>
+            <button className="w-8 h-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm flex items-center justify-center transition-colors">5</button>
+            <button className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
