@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom'; // <-- 1. Import useLocation
+import { useLocation } from 'react-router-dom';
 import { inventoryApi } from '../services/api';
-import { Search, Filter, Download, AlertTriangle, ScanLine } from 'lucide-react';
+import { Search, Filter, Download, AlertTriangle, ScanLine, ArrowUpDown, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import StatusBadge from '../components/ui/StatusBadge';
@@ -14,13 +14,11 @@ export default function Inventory() {
   const [search, setSearch] = useState('');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   
-  const location = useLocation(); // <-- 2. Initialize location hook
+  const location = useLocation();
 
-  // 3. Listen for the "openScanner" command from the Dashboard
   useEffect(() => {
     if (location.state?.openScanner) {
       setIsScannerOpen(true);
-      // Clear the state so it doesn't keep reopening if the user refreshes the page
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -50,13 +48,13 @@ export default function Inventory() {
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Master Inventory</h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setIsScannerOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded-lg text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors">
+          <button onClick={() => setIsScannerOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded-lg text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors shadow-sm">
             <ScanLine className="w-4 h-4" /> Scan SKU
           </button>
           <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
@@ -65,8 +63,9 @@ export default function Inventory() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-4 bg-slate-50/50 dark:bg-slate-900/20">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden flex flex-col">
+        {/* Table Toolbar */}
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/20">
           <div className="relative max-w-md w-full">
             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
             <input 
@@ -74,14 +73,20 @@ export default function Inventory() {
               placeholder="Search by SKU or Item Name..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" 
+              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-colors dark:text-white" 
             />
           </div>
-          <button className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">
-            <Filter className="w-4 h-4" /> Category Filter
-          </button>
+          <div className="flex gap-2">
+            <button className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 transition-colors">
+              <Filter className="w-4 h-4" /> Filters
+            </button>
+            <button className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
+        {/* Data Table */}
         <div className="overflow-x-auto min-h-[400px]">
           {loading ? (
              <TableSkeleton rows={5} />
@@ -89,12 +94,28 @@ export default function Inventory() {
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="px-6 py-3.5 font-semibold">SKU & Item Name</th>
-                  <th className="px-6 py-3.5 font-semibold">Category</th>
-                  <th className="px-6 py-3.5 font-semibold">Shelf Life</th>
-                  <th className="px-6 py-3.5 font-semibold">Stock Level</th>
-                  <th className="px-6 py-3.5 font-semibold">Velocity</th>
-                  <th className="px-6 py-3.5 font-semibold">Status</th>
+                  <th className="px-6 py-4 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
+                    <div className="flex items-center justify-between">
+                      SKU & Item Name <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
+                    <div className="flex items-center justify-between">
+                      Category <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
+                    <div className="flex items-center justify-between">
+                      Shelf Life <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
+                    <div className="flex items-center justify-between">
+                      Stock Level <ArrowUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-semibold">Velocity</th>
+                  <th className="px-6 py-4 font-semibold">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
@@ -128,6 +149,26 @@ export default function Inventory() {
               </tbody>
             </table>
           )}
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-sm text-slate-500 dark:text-slate-400">
+            Showing <span className="font-medium text-slate-900 dark:text-white">1</span> to <span className="font-medium text-slate-900 dark:text-white">{filteredData.length}</span> of <span className="font-medium text-slate-900 dark:text-white">142</span> results
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" disabled>
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button className="w-8 h-8 rounded-lg bg-indigo-600 text-white font-medium text-sm flex items-center justify-center">1</button>
+            <button className="w-8 h-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm flex items-center justify-center transition-colors">2</button>
+            <button className="w-8 h-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm flex items-center justify-center transition-colors">3</button>
+            <span className="text-slate-400 px-1">...</span>
+            <button className="w-8 h-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm flex items-center justify-center transition-colors">15</button>
+            <button className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 
