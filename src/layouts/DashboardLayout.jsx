@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Package, ShoppingCart, Truck, Settings, Search, 
-  Bell, Sun, Moon, Menu, ChevronLeft, X, FileText, Layers, Calendar, Map 
+  Bell, Sun, Moon, Menu, ChevronLeft, X, FileText, Layers, Calendar, Map,
+  AlertTriangle, CheckCircle, Info, Clock 
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -14,7 +15,15 @@ export default function DashboardLayout() {
   
   const location = useLocation();
   const navigate = useNavigate();
-  const unreadCount = 3;
+
+  // Mock Notification Data for the dropdown
+  const notifications = [
+    { id: 1, title: 'Low Stock Alert', desc: 'FMCG Category: SKU-8492 is below minimum threshold.', time: '10 mins ago', icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { id: 2, title: 'PO Approved', desc: 'Purchase Order #4092 for Fresh Produce has been approved.', time: '1 hour ago', icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
+    { id: 3, title: 'Dock Update', desc: 'Supplier delivery at Dock B rescheduled to 14:00.', time: '2 hours ago', icon: Info, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+  ];
+  
+  const unreadCount = notifications.length;
 
   useEffect(() => {
     if (window.innerWidth < 768) {
@@ -56,7 +65,6 @@ export default function DashboardLayout() {
       `}>
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700">
           
-          {/* Logo */}
           <div className={`flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xl tracking-tight ${!isSidebarOpen ? 'md:hidden' : ''}`}>
             <div className="bg-indigo-600 text-white p-1 rounded-lg shadow-sm"><Package className="w-5 h-5" /></div>
             <span>NexaWMS</span>
@@ -93,7 +101,6 @@ export default function DashboardLayout() {
       </aside>
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
-        {/* Set relative and z-50 to ensure header dropdowns float above content */}
         <header className="h-16 flex-shrink-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 sm:px-6 relative z-50">
           <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
             <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-2 -ml-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
@@ -124,13 +131,33 @@ export default function DashboardLayout() {
                 )}
               </button>
 
+              {/* Upgraded Notification Panel */}
               {isNotifOpen && (
-                <div className="absolute right-0 mt-3 w-64 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl z-[100]">
-                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                <div className="absolute right-0 mt-3 w-80 md:w-96 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl z-[100] overflow-hidden">
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</p>
+                    <button className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors">Mark all read</button>
                   </div>
-                  <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                    You have {unreadCount} new alerts.
+                  
+                  <div className="max-h-[28rem] overflow-y-auto">
+                    {notifications.map((notif) => (
+                      <div key={notif.id} className="px-4 py-3 border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors flex gap-3">
+                        <div className={`mt-1 p-2 rounded-full ${notif.bg} flex-shrink-0 h-fit`}>
+                          <notif.icon className={`w-4 h-4 ${notif.color}`} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{notif.title}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{notif.desc}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1 font-medium">
+                            <Clock className="w-3 h-3" /> {notif.time}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="p-2 text-center border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                    <Link to="/notifications" className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline block py-1">View all activity</Link>
                   </div>
                 </div>
               )}
@@ -158,7 +185,6 @@ export default function DashboardLayout() {
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@nexawms.com</p>
                   </div>
                   <div className="py-1">
-                    {/* Replaced 'Your Profile' and 'Settings' with a single 'Account Settings' link */}
                     <Link to="/settings" className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50">
                       Account Settings
                     </Link>
@@ -178,7 +204,6 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        {/* Set a low z-index for the main content area so dropdowns aren't clipped */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 relative z-0">
           <Outlet />
         </div>
