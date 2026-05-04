@@ -6,7 +6,7 @@ import {
   AlertTriangle, CheckCircle, Info, Clock 
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { motion, AnimatePresence } from 'framer-motion'; // ADDED: Framer Motion
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
@@ -25,14 +25,12 @@ export default function DashboardLayout() {
   
   const unreadCount = notifications.length;
 
-  // Mobile sidebar auto-close
   useEffect(() => {
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
-  }, [location.pathname]);
+  }, [location?.pathname]); // Added optional chaining[cite: 6]
 
-  // ADDED: Command Palette Keyboard Shortcut (Ctrl+K or Cmd+K)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -96,7 +94,8 @@ export default function DashboardLayout() {
         
         <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1.5 bg-white dark:bg-slate-800">
           {navItems.map((item) => {
-            const isActive = location.pathname.includes(item.path);
+            // Defensive optional chaining applied to location.pathname[cite: 6]
+            const isActive = location?.pathname?.includes(item.path) || false; 
             return (
               <Link 
                 key={item.path} 
@@ -121,7 +120,6 @@ export default function DashboardLayout() {
             
             <div className="relative w-full sm:w-64 lg:w-80 flex-1 min-w-0">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 flex-shrink-0" />
-              {/* ADDED: id="global-search" and updated placeholder for shortcut hint */}
               <input 
                 id="global-search"
                 type="text" 
@@ -220,10 +218,9 @@ export default function DashboardLayout() {
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 relative z-0">
-          {/* ADDED: Framer Motion AnimatePresence wrapping the Outlet */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={location.pathname}
+              key={location?.pathname} // Optional chaining[cite: 6]
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
