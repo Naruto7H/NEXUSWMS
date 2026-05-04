@@ -6,6 +6,7 @@ import {
   AlertTriangle, CheckCircle, Info, Clock 
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { motion, AnimatePresence } from 'framer-motion'; // ADDED: Framer Motion
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
@@ -24,11 +25,25 @@ export default function DashboardLayout() {
   
   const unreadCount = notifications.length;
 
+  // Mobile sidebar auto-close
   useEffect(() => {
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
   }, [location.pathname]);
+
+  // ADDED: Command Palette Keyboard Shortcut (Ctrl+K or Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('global-search');
+        if (searchInput) searchInput.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleLogout = () => {
     setIsProfileOpen(false);
@@ -50,9 +65,6 @@ export default function DashboardLayout() {
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans overflow-hidden transition-colors duration-200">
       
-      {/* 
-        FIX 3 (Overlay): Increased z-index to z-[55] so it sits above the header on mobile 
-      */}
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[55] md:hidden"
@@ -60,9 +72,6 @@ export default function DashboardLayout() {
         />
       )}
 
-      {/* 
-        FIX 3 (Sidebar): Changed mobile z-index to z-[60] so the sidebar logo and 'X' close button aren't hidden under the header 
-      */}
       <aside className={`fixed md:relative inset-y-0 left-0 z-[60] md:z-30 flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 shadow-2xl md:shadow-none
         ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'}
       `}>
@@ -105,27 +114,23 @@ export default function DashboardLayout() {
       <main className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
         <header className="h-16 flex-shrink-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 sm:px-6 relative z-50">
           
-          {/* 
-            FIX 2 (Search Squishing): Added flex-1 and min-w-0 to the left container so it shrinks properly instead of expanding aggressively 
-          */}
           <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-            
-            {/* 
-              FIX 1 (Hamburger Toggle): Changed onClick from (true) to (!isSidebarOpen) so it toggles perfectly 
-            */}
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 -ml-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors flex-shrink-0">
               <Menu className="w-6 h-6" />
             </button>
             
             <div className="relative w-full sm:w-64 lg:w-80 flex-1 min-w-0">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 flex-shrink-0" />
-              <input type="text" placeholder="Search SKU, PO..." className="pl-9 pr-4 py-2 w-full bg-slate-100 dark:bg-slate-900 border-transparent focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-lg text-sm outline-none transition-all dark:text-white" />
+              {/* ADDED: id="global-search" and updated placeholder for shortcut hint */}
+              <input 
+                id="global-search"
+                type="text" 
+                placeholder="Search SKU, PO... (Ctrl+K)" 
+                className="pl-9 pr-4 py-2 w-full bg-slate-100 dark:bg-slate-900 border-transparent focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-lg text-sm outline-none transition-all dark:text-white" 
+              />
             </div>
           </div>
           
-          {/* 
-            FIX 2 (Profile Squishing): Added flex-shrink-0 to the right container to protect the icons from being crushed 
-          */}
           <div className="flex items-center gap-2 sm:gap-4 relative ml-2 sm:ml-4 flex-shrink-0">
             
             <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none flex-shrink-0">
@@ -181,9 +186,6 @@ export default function DashboardLayout() {
                 onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false); }}
                 className="flex items-center gap-2 focus:outline-none rounded-full ring-2 ring-transparent hover:ring-indigo-500 transition-all flex-shrink-0"
               >
-                {/* 
-                  FIX 2 (Profile Squishing): Added min-w-[2rem] and flex-shrink-0 directly to the image 
-                */}
                 <img 
                   className="w-8 h-8 min-w-[2rem] rounded-full object-cover bg-slate-200 dark:bg-slate-700 flex-shrink-0" 
                   src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff" 
@@ -218,7 +220,19 @@ export default function DashboardLayout() {
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 relative z-0">
-          <Outlet />
+          {/* ADDED: Framer Motion AnimatePresence wrapping the Outlet */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="h-full"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
     </div>
