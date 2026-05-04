@@ -14,6 +14,7 @@ export default function DashboardLayout() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isDark, toggleTheme } = useTheme();
   
+  // Hook initialization
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -29,7 +30,7 @@ export default function DashboardLayout() {
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
-  }, [location?.pathname]); // Added optional chaining[cite: 6]
+  }, [location?.pathname]); // Safety check applied
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -94,8 +95,10 @@ export default function DashboardLayout() {
         
         <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1.5 bg-white dark:bg-slate-800">
           {navItems.map((item) => {
-            // Defensive optional chaining applied to location.pathname[cite: 6]
-            const isActive = location?.pathname?.includes(item.path) || false; 
+            // FIXED: Added multi-layer safety check to prevent "includes of undefined"
+            const currentPath = location?.pathname || "";
+            const isActive = currentPath.includes(item.path);
+            
             return (
               <Link 
                 key={item.path} 
@@ -147,7 +150,7 @@ export default function DashboardLayout() {
               </button>
 
               {isNotifOpen && (
-                <div className="absolute right-0 mt-3 w-80 md:w-96 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl z-[100] overflow-hidden">
+                <div className="absolute right-0 mt-3 w-80 md:w-96 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl z-[100] overflow-hidden text-left">
                   <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</p>
                     <button className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors">Mark all read</button>
@@ -155,7 +158,7 @@ export default function DashboardLayout() {
                   
                   <div className="max-h-[28rem] overflow-y-auto">
                     {notifications.map((notif) => (
-                      <div key={notif.id} className="px-4 py-3 border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors flex gap-3">
+                      <div key={notif.id} className="px-4 py-3 border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors flex gap-3 text-left">
                         <div className={`mt-1 p-2 rounded-full ${notif.bg} flex-shrink-0 h-fit`}>
                           <notif.icon className={`w-4 h-4 ${notif.color}`} />
                         </div>
@@ -192,7 +195,7 @@ export default function DashboardLayout() {
               </button>
 
               {isProfileOpen && (
-                <div className="absolute right-0 mt-3 w-48 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl z-[100]">
+                <div className="absolute right-0 mt-3 w-48 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl z-[100] text-left">
                   <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                     <p className="text-sm font-medium text-slate-900 dark:text-white">Admin User</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@nexawms.com</p>
@@ -220,7 +223,7 @@ export default function DashboardLayout() {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 relative z-0">
           <AnimatePresence mode="wait">
             <motion.div
-              key={location?.pathname} // Optional chaining[cite: 6]
+              key={location?.pathname || "initial"} // FIXED: Safety check for key[cite: 6]
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
