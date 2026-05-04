@@ -7,7 +7,6 @@ import {
 import { useTheme } from '../context/ThemeContext';
 
 export default function DashboardLayout() {
-  // Start closed on mobile, open on desktop
   const [isSidebarOpen, setIsSidebarOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -17,7 +16,6 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const unreadCount = 3;
 
-  // Close the sidebar automatically when changing pages on mobile
   useEffect(() => {
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
@@ -68,11 +66,11 @@ export default function DashboardLayout() {
             <div className="bg-indigo-600 text-white p-1.5 rounded-lg shadow-sm"><Package className="w-5 h-5" /></div>
           </div>
 
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:block p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:block p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none">
             {isSidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
 
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -95,7 +93,8 @@ export default function DashboardLayout() {
       </aside>
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
-        <header className="h-16 flex-shrink-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 sm:px-6 z-10">
+        {/* Set relative and z-50 to ensure header dropdowns float above content */}
+        <header className="h-16 flex-shrink-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 sm:px-6 relative z-50">
           <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
             <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-2 -ml-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
               <Menu className="w-6 h-6" />
@@ -109,28 +108,40 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-2 sm:gap-4 relative ml-4">
             
             {/* Theme Toggle */}
-            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
+            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none">
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            {/* Notifications */}
-            <button 
-              onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
-            >
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-800"></span>
-              )}
-            </button>
+            {/* Notifications Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => { setIsNotifOpen(!isNotifOpen); setIsProfileOpen(false); }}
+                className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-800"></span>
+                )}
+              </button>
 
-            {/* Vertical Divider */}
+              {isNotifOpen && (
+                <div className="absolute right-0 mt-3 w-64 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl z-[100]">
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</p>
+                  </div>
+                  <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                    You have {unreadCount} new alerts.
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-1"></div>
 
             {/* Profile Dropdown */}
             <div className="relative">
               <button 
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false); }}
                 className="flex items-center gap-2 focus:outline-none rounded-full ring-2 ring-transparent hover:ring-indigo-500 transition-all"
               >
                 <img 
@@ -140,16 +151,17 @@ export default function DashboardLayout() {
                 />
               </button>
 
-              {/* Dropdown Menu */}
               {isProfileOpen && (
-                <div className="absolute right-0 mt-3 w-48 rounded-xl bg-white dark:bg-slate-800 py-1 shadow-lg ring-1 ring-slate-200 dark:ring-slate-700 z-50">
+                <div className="absolute right-0 mt-3 w-48 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl z-[100]">
                   <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                     <p className="text-sm font-medium text-slate-900 dark:text-white">Admin User</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@nexawms.com</p>
                   </div>
                   <div className="py-1">
-                    <Link to="/profile" className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50">Your Profile</Link>
-                    <Link to="/settings" className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50">Settings</Link>
+                    {/* Replaced 'Your Profile' and 'Settings' with a single 'Account Settings' link */}
+                    <Link to="/settings" className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                      Account Settings
+                    </Link>
                   </div>
                   <div className="border-t border-slate-100 dark:border-slate-700 py-1">
                     <button 
@@ -166,7 +178,8 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900">
+        {/* Set a low z-index for the main content area so dropdowns aren't clipped */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 relative z-0">
           <Outlet />
         </div>
       </main>
