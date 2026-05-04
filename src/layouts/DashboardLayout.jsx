@@ -16,7 +16,6 @@ export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Mock Notification Data for the dropdown
   const notifications = [
     { id: 1, title: 'Low Stock Alert', desc: 'FMCG Category: SKU-8492 is below minimum threshold.', time: '10 mins ago', icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
     { id: 2, title: 'PO Approved', desc: 'Purchase Order #4092 for Fresh Produce has been approved.', time: '1 hour ago', icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
@@ -51,20 +50,23 @@ export default function DashboardLayout() {
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans overflow-hidden transition-colors duration-200">
       
-      {/* Mobile Overlay Background */}
+      {/* 
+        FIX 3 (Overlay): Increased z-index to z-[55] so it sits above the header on mobile 
+      */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-20 md:hidden"
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[55] md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-      <aside className={`fixed md:relative inset-y-0 left-0 z-30 flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 shadow-2xl md:shadow-none
+      {/* 
+        FIX 3 (Sidebar): Changed mobile z-index to z-[60] so the sidebar logo and 'X' close button aren't hidden under the header 
+      */}
+      <aside className={`fixed md:relative inset-y-0 left-0 z-[60] md:z-30 flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 shadow-2xl md:shadow-none
         ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'}
       `}>
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700">
-          
+        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
           <div className={`flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xl tracking-tight ${!isSidebarOpen ? 'md:hidden' : ''}`}>
             <div className="bg-indigo-600 text-white p-1 rounded-lg shadow-sm"><Package className="w-5 h-5" /></div>
             <span>NexaWMS</span>
@@ -78,12 +80,12 @@ export default function DashboardLayout() {
             {isSidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
 
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none">
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none flex-shrink-0">
             <X className="w-5 h-5" />
           </button>
         </div>
         
-        <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1.5">
+        <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1.5 bg-white dark:bg-slate-800">
           {navItems.map((item) => {
             const isActive = location.pathname.includes(item.path);
             return (
@@ -102,25 +104,35 @@ export default function DashboardLayout() {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
         <header className="h-16 flex-shrink-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 sm:px-6 relative z-50">
-          <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
-            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-2 -ml-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
+          
+          {/* 
+            FIX 2 (Search Squishing): Added flex-1 and min-w-0 to the left container so it shrinks properly instead of expanding aggressively 
+          */}
+          <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+            
+            {/* 
+              FIX 1 (Hamburger Toggle): Changed onClick from (true) to (!isSidebarOpen) so it toggles perfectly 
+            */}
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 -ml-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors flex-shrink-0">
               <Menu className="w-6 h-6" />
             </button>
-            <div className="relative w-full sm:w-64 lg:w-80 flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+            
+            <div className="relative w-full sm:w-64 lg:w-80 flex-1 min-w-0">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 flex-shrink-0" />
               <input type="text" placeholder="Search SKU, PO..." className="pl-9 pr-4 py-2 w-full bg-slate-100 dark:bg-slate-900 border-transparent focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-lg text-sm outline-none transition-all dark:text-white" />
             </div>
           </div>
           
-          <div className="flex items-center gap-2 sm:gap-4 relative ml-4">
+          {/* 
+            FIX 2 (Profile Squishing): Added flex-shrink-0 to the right container to protect the icons from being crushed 
+          */}
+          <div className="flex items-center gap-2 sm:gap-4 relative ml-2 sm:ml-4 flex-shrink-0">
             
-            {/* Theme Toggle */}
-            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none">
+            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none flex-shrink-0">
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            {/* Notifications Dropdown */}
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <button 
                 onClick={() => { setIsNotifOpen(!isNotifOpen); setIsProfileOpen(false); }}
                 className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none"
@@ -131,7 +143,6 @@ export default function DashboardLayout() {
                 )}
               </button>
 
-              {/* Upgraded Notification Panel */}
               {isNotifOpen && (
                 <div className="absolute right-0 mt-3 w-80 md:w-96 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl z-[100] overflow-hidden">
                   <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
@@ -163,16 +174,18 @@ export default function DashboardLayout() {
               )}
             </div>
 
-            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-1"></div>
+            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-1 flex-shrink-0"></div>
 
-            {/* Profile Dropdown */}
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <button 
                 onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false); }}
-                className="flex items-center gap-2 focus:outline-none rounded-full ring-2 ring-transparent hover:ring-indigo-500 transition-all"
+                className="flex items-center gap-2 focus:outline-none rounded-full ring-2 ring-transparent hover:ring-indigo-500 transition-all flex-shrink-0"
               >
+                {/* 
+                  FIX 2 (Profile Squishing): Added min-w-[2rem] and flex-shrink-0 directly to the image 
+                */}
                 <img 
-                  className="w-8 h-8 rounded-full object-cover bg-slate-200 dark:bg-slate-700" 
+                  className="w-8 h-8 min-w-[2rem] rounded-full object-cover bg-slate-200 dark:bg-slate-700 flex-shrink-0" 
                   src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff" 
                   alt="Profile Avatar" 
                 />
