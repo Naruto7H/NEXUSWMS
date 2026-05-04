@@ -15,6 +15,7 @@ export default function DashboardLayout() {
   
   const location = useLocation();
   const navigate = useNavigate();
+  const unreadCount = 3;
 
   // Close the sidebar automatically when changing pages on mobile
   useEffect(() => {
@@ -106,10 +107,62 @@ export default function DashboardLayout() {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4 relative ml-4">
+            
+            {/* Theme Toggle */}
             <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            {/* Notifications & Profile ... (rest of code) */}
+
+            {/* Notifications */}
+            <button 
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-800"></span>
+              )}
+            </button>
+
+            {/* Vertical Divider */}
+            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-1"></div>
+
+            {/* Profile Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 focus:outline-none rounded-full ring-2 ring-transparent hover:ring-indigo-500 transition-all"
+              >
+                <img 
+                  className="w-8 h-8 rounded-full object-cover bg-slate-200 dark:bg-slate-700" 
+                  src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff" 
+                  alt="Profile Avatar" 
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-3 w-48 rounded-xl bg-white dark:bg-slate-800 py-1 shadow-lg ring-1 ring-slate-200 dark:ring-slate-700 z-50">
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">Admin User</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@nexawms.com</p>
+                  </div>
+                  <div className="py-1">
+                    <Link to="/profile" className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50">Your Profile</Link>
+                    <Link to="/settings" className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50">Settings</Link>
+                  </div>
+                  <div className="border-t border-slate-100 dark:border-slate-700 py-1">
+                    <button 
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         </header>
 
