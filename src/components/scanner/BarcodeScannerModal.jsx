@@ -5,90 +5,93 @@ import toast from 'react-hot-toast';
 
 export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess }) {
   const scannerRef = useRef(null);
-  const streamRef = useRef(null); // Stores the raw hardware stream reference
+  const streamRef = useRef(null);
 
   // 1. Graceful Shutdown Function
-  // Shuts down the camera BEFORE telling the parent to remove the DOM.
   const handleGracefulClose = async () => {
+    // Stop the library
     if (scannerRef.current) {
       try {
         await scannerRef.current.clear();
       } catch (error) {
-        // Ignore clear errors if it's already clearing
+        // Ignore background errors
       }
       scannerRef.current = null;
     }
     
-    // Backup hardware kill just in case
+    // Stop the hardware camera track immediately
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
 
-    onClose(); // Now tell the parent it is safe to unmount
+    onClose(); // Tell parent to close the modal
   };
 
   useEffect(() => {
     if (!isOpen) return;
 
-    // Prevent duplicate initializations in React Strict Mode
-    if (scannerRef.current) return;
+    let isCancelled = false;
+    let streamPoller = null;
 
-    // Clear any zombie DOM elements from the library
-    const readerElement = document.getElementById('reader');
-    if (readerElement) readerElement.innerHTML = '';
+    // React 18 Strict Mode Bypass:
+    // Wait 50ms before initializing. If React immediately unmounts this (Strict Mode),
+    // `isCancelled` becomes true and we never initialize the doomed first scanner.
+    const initTimer = setTimeout(() => {
+      if (isCancelled) return;
 
-    // Initialize Scanner
-    const scanner = new Html5QrcodeScanner(
-      "reader",
-      { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true 
-      },
-      false
-    );
-    
-    scannerRef.current = scanner;
+      const readerElement = document.getElementById('reader');
+      if (readerElement) readerElement.innerHTML = '';
 
-    scanner.render(
-      (decodedText) => {
-        toast.success(`Scanned: ${decodedText}`);
-        onScanSuccess(decodedText);
-        handleGracefulClose(); // Close automatically and safely on successful scan
-      },
-      (error) => {
-        // Ignore constant background scanning errors
-      }
-    );
-
-    // 2. Hardware Stream Sniffer
-    // We continuously check the DOM to grab the raw MediaStream from the video tag.
-    // If the user navigates to a new page, the DOM is destroyed instantly, but because
-    // we saved the stream to `streamRef`, we can still turn off the green camera light!
-    const streamPoller = setInterval(() => {
-      const videoElement = document.querySelector('#reader video');
-      if (videoElement && videoElement.srcObject) {
-        streamRef.current = videoElement.srcObject;
-        clearInterval(streamPoller); // Stop polling once we caught it
-      }
-    }, 200);
-
-    // 3. Emergency Cleanup (Runs on Page Navigation or Hard Unmount)
-    return () => {
-      clearInterval(streamPoller);
+      const scanner = new Html5QrcodeScanner(
+        "reader",
+        { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          rememberLastUsedCamera: true 
+        },
+        false
+      );
       
-      // Attempt soft kill
+      scannerRef.current = scanner;
+
+      scanner.render(
+        (decodedText) => {
+          toast.success(`Scanned: ${decodedText}`);
+          onScanSuccess(decodedText);
+          handleGracefulClose(); // Auto-close on successful scan
+        },
+        (error) => {
+          // Ignore scanning errors
+        }
+      );
+
+      // Hardware Sniffer: Catch the raw video stream to turn off the green light later
+      streamPoller = setInterval(() => {
+        const videoElement = document.querySelector('#reader video');
+        if (videoElement && videoElement.srcObject) {
+          streamRef.current = videoElement.srcObject;
+          clearInterval(streamPoller);
+        }
+      }, 200);
+
+    }, 50);
+
+    // Emergency Cleanup (Triggered if user navigates away or clicks outside)
+    return () => {
+      isCancelled = true;
+      clearTimeout(initTimer);
+      if (streamPoller) clearInterval(streamPoller);
+      
+      // Soft kill
       if (scannerRef.current) {
         scannerRef.current.clear().catch(() => {});
         scannerRef.current = null;
       }
 
-      // Execute Hard Kill directly from hardware memory reference
+      // Hard kill hardware
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => {
-          track.stop();
-        });
+        streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
     };
@@ -101,7 +104,7 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess }) 
       {/* Click overlay to close gracefully */}
       <div className="absolute inset-0" onClick={handleGracefulClose}></div>
       
-      <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 relative z-10">
+      <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 relative z-10 animate-in zoom-in-95 duration-200">
         <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900">
           <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Camera className="w-5 h-5 text-indigo-500" /> Scan SKU
