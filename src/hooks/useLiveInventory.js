@@ -12,7 +12,6 @@ export function useLiveInventory(url) {
 
     ws.current.onopen = () => {
       setIsConnected(true);
-      console.log('WMS Live Feed Connected');
     };
 
     ws.current.onmessage = (event) => {
@@ -29,7 +28,6 @@ export function useLiveInventory(url) {
 
     ws.current.onclose = () => {
       setIsConnected(false);
-      console.log('WMS Live Feed Disconnected');
       // In a production app, you would add reconnection logic here
     };
 
