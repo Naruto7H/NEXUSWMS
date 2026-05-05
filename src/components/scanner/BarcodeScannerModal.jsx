@@ -5,27 +5,36 @@ import toast from 'react-hot-toast';
 
 export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess }) {
   const scannerRef = useRef(null);
-  const streamRef = useRef(null);
+  
+  // We use a Set to aggressively track EVERY stream the camera library creates,
+  // preventing orphaned HD streams from keeping the camera light on.
+  const hardwareStreams = useRef(new Set());
 
-  // 1. Graceful Shutdown Function
+  // Universal hardware kill-switch
+  const killCameraHardware = () => {
+    hardwareStreams.current.forEach(stream => {
+      if (stream) {
+        stream.getTracks().forEach(track => {
+          track.stop();       // Stop the hardware
+          track.enabled = false; // Disable it just in case
+        });
+      }
+    });
+    hardwareStreams.current.clear();
+  };
+
   const handleGracefulClose = async () => {
-    // Stop the library
     if (scannerRef.current) {
       try {
         await scannerRef.current.clear();
       } catch (error) {
-        // Ignore background errors
+        // Suppress expected crashes from the library during teardown
       }
       scannerRef.current = null;
     }
     
-    // Stop the hardware camera track immediately
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-
-    onClose(); // Tell parent to close the modal
+    killCameraHardware(); // Force hardware off
+    onClose();            // Tell React to close the modal
   };
 
   useEffect(() => {
@@ -34,9 +43,7 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess }) 
     let isCancelled = false;
     let streamPoller = null;
 
-    // React 18 Strict Mode Bypass:
-    // Wait 50ms before initializing. If React immediately unmounts this (Strict Mode),
-    // `isCancelled` becomes true and we never initialize the doomed first scanner.
+    // React 18 Strict Mode Bypass (50ms delay)
     const initTimer = setTimeout(() => {
       if (isCancelled) return;
 
@@ -62,22 +69,25 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess }) 
           handleGracefulClose(); // Auto-close on successful scan
         },
         (error) => {
-          // Ignore scanning errors
+          // Ignore frequent scanning errors
         }
       );
 
-      // Hardware Sniffer: Catch the raw video stream to turn off the green light later
+      // AGGRESSIVE HARDWARE SNIFFER
+      // We check constantly (every 250ms). If the library swaps streams 
+      // for higher resolution, we catch them all and add them to the hit-list.
       streamPoller = setInterval(() => {
-        const videoElement = document.querySelector('#reader video');
-        if (videoElement && videoElement.srcObject) {
-          streamRef.current = videoElement.srcObject;
-          clearInterval(streamPoller);
-        }
-      }, 200);
+        const videoElements = document.querySelectorAll('#reader video');
+        videoElements.forEach(video => {
+          if (video.srcObject) {
+            hardwareStreams.current.add(video.srcObject);
+          }
+        });
+      }, 250);
 
     }, 50);
 
-    // Emergency Cleanup (Triggered if user navigates away or clicks outside)
+    // Emergency Cleanup (Triggered if user navigates to a new page via Sidebar)
     return () => {
       isCancelled = true;
       clearTimeout(initTimer);
@@ -89,11 +99,8 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess }) 
         scannerRef.current = null;
       }
 
-      // Hard kill hardware
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
+      // Hard kill hardware if user navigated away without clicking "X"
+      killCameraHardware();
     };
   }, [isOpen, onScanSuccess]);
 
