@@ -47,6 +47,23 @@ export default function PurchaseOrders() {
     toast.success(`Purchase Order ${id} approved.`);
   };
 
+  const handleExportSelected = () => {
+    const selectedData = orders.filter(o => selectedIds.includes(o.id));
+    const csvContent = [
+      ['PO Number', 'Supplier', 'Date', 'Amount', 'Status'],
+      ...selectedData.map(o => [o.id, o.supplier, o.date, o.amount.replace(',', ''), o.status])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'selected_purchase_orders.csv';
+    link.click();
+
+    toast.success(`${selectedIds.length} orders exported successfully.`);
+    setSelectedIds([]); // Clear selection after export
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10 relative">
       
@@ -120,7 +137,7 @@ export default function PurchaseOrders() {
                   
                   <td className="px-6 py-4 text-right flex items-center justify-end gap-3">
                     {order.status === 'Pending' ? (
-                      <RequireRole allowedRoles={['Central Buyer', 'Admin']}>
+                      <RequireRole allowedRoles={['Central Buyer', 'Admin', 'Warehouse Supervisor']}>
                         <button onClick={() => handleApprove(order.id)} className="text-xs font-medium bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 px-3 py-1.5 rounded-md transition-colors border border-indigo-200 dark:border-indigo-500/20">
                           Quick Approve
                         </button>
@@ -157,8 +174,8 @@ export default function PurchaseOrders() {
             <button onClick={handleBulkApprove} className="text-sm font-medium text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" /> Bulk Approve
             </button>
-            <button onClick={() => toast.success('Exporting selected records...')} className="text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
-              <Download className="w-4 h-4" /> Export CSV
+            <button onClick={handleExportSelected} className="text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
+              <Download className="w-4 h-4" /> Export Selected
             </button>
           </div>
           
