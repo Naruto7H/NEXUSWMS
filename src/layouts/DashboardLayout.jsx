@@ -30,7 +30,7 @@ export default function DashboardLayout() {
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
-  }, [location?.pathname]); // Safety check applied
+  }, [location?.pathname]); 
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -95,7 +95,6 @@ export default function DashboardLayout() {
         
         <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1.5 bg-white dark:bg-slate-800">
           {navItems.map((item) => {
-            // FIXED: Added multi-layer safety check to prevent "includes of undefined"
             const currentPath = location?.pathname || "";
             const isActive = currentPath.includes(item.path);
             
@@ -221,14 +220,14 @@ export default function DashboardLayout() {
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-900 relative z-0">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
-              key={location?.pathname || "initial"} // FIXED: Safety check for key[cite: 6]
+              key={location.pathname.split('/')[1] || "root"} 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="h-full"
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="min-h-full"
             >
               <Outlet />
             </motion.div>
