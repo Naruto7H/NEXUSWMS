@@ -13,6 +13,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Inventory = lazy(() => import('./pages/Inventory'));
 const PurchaseOrders = lazy(() => import('./pages/PurchaseOrders'));
+const CreatePO = lazy(() => import('./pages/CreatePO'));
 const Suppliers = lazy(() => import('./pages/Suppliers'));
 const DockSchedule = lazy(() => import('./pages/DockSchedule'));
 const WarehouseMap = lazy(() => import('./pages/WarehouseMap'));
@@ -23,9 +24,9 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 // A reusable loading fallback utilizing your existing skeleton component
 const PageLoader = () => (
-  <div className="w-full h-full flex flex-col gap-4">
+  <div className="w-full h-full flex flex-col gap-4 p-6">
     <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mb-4"></div>
-    <TableSkeleton />
+    <TableSkeleton rows={5} />
   </div>
 );
 
@@ -37,8 +38,15 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
-      {/* Protected Dashboard Routes */}
-      <Route path="/" element={<RequireRole><DashboardLayout /></RequireRole>}>
+      {/* 
+        Protected Dashboard Routes 
+        FIXED: Added the allowedRoles prop to prevent the app from crashing 
+      */}
+      <Route path="/" element={
+        <RequireRole allowedRoles={['Admin', 'Central Buyer', 'Warehouse Supervisor']}>
+          <DashboardLayout />
+        </RequireRole>
+      }>
         
         {/* Redirect root to dashboard */}
         <Route index element={<Navigate to="/dashboard" replace />} />
@@ -59,6 +67,13 @@ export default function App() {
         <Route path="po" element={
           <Suspense fallback={<PageLoader />}>
             <PurchaseOrders />
+          </Suspense>
+        } />
+
+        {/* FIXED: Re-added the Create PO Route */}
+        <Route path="po/new" element={
+          <Suspense fallback={<PageLoader />}>
+            <CreatePO />
           </Suspense>
         } />
         
