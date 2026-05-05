@@ -37,8 +37,23 @@ export default function PurchaseOrders() {
   };
 
   const handleBulkApprove = () => {
-    setOrders(orders.map(o => selectedIds.includes(o.id) ? { ...o, status: 'Approved' } : o));
-    toast.success(`${selectedIds.length} purchase orders approved successfully.`);
+    // 1. Find how many selected orders are actually "Pending"
+    const pendingSelectedCount = orders.filter(o => selectedIds.includes(o.id) && o.status === 'Pending').length;
+
+    if (pendingSelectedCount === 0) {
+      toast.error('No pending orders selected to approve.');
+      setSelectedIds([]);
+      return;
+    }
+
+    // 2. Only update the status if it's currently Pending
+    setOrders(orders.map(o => 
+      (selectedIds.includes(o.id) && o.status === 'Pending') 
+        ? { ...o, status: 'Approved' } 
+        : o
+    ));
+    
+    toast.success(`${pendingSelectedCount} purchase order(s) approved.`);
     setSelectedIds([]); // Clear selection after action
   };
 
