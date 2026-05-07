@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, FileText, Building, Calendar, Package, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useStore } from '../context/StoreContext';
 
 export default function CreatePO() {
   const navigate = useNavigate();
+  const { addOrder } = useStore(); // Access global state
   
   // Form State
   const [vendor, setVendor] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [expectedDate, setExpectedDate] = useState('');
-  
-  // Dynamic Items State
   const [items, setItems] = useState([
     { id: 1, description: '', sku: '', qty: 1, price: 0 }
   ]);
@@ -22,8 +22,7 @@ export default function CreatePO() {
   const total = subtotal + tax;
 
   const handleAddItem = () => {
-    const newItem = { id: Date.now(), description: '', sku: '', qty: 1, price: 0 };
-    setItems([...items, newItem]);
+    setItems([...items, { id: Date.now(), description: '', sku: '', qty: 1, price: 0 }]);
   };
 
   const handleRemoveItem = (id) => {
@@ -32,12 +31,7 @@ export default function CreatePO() {
   };
 
   const handleItemChange = (id, field, value) => {
-    setItems(items.map(item => {
-      if (item.id === id) {
-        return { ...item, [field]: value };
-      }
-      return item;
-    }));
+    setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
   const handleSubmit = (e) => {
@@ -45,12 +39,30 @@ export default function CreatePO() {
     if (!vendor) return toast.error("Please select a vendor.");
     if (items.some(i => !i.description || i.qty <= 0)) return toast.error("Please fill out all item fields correctly.");
     
-    // Mock submission
+    // Map Vendor ID to Name
+    const vendorNames = { 
+      'VND-001': 'Al Ain Farms', 
+      'VND-002': 'TechCorp Electronics', 
+      'VND-003': 'Malabar Plaza', 
+      'VND-005': 'P&G Trading' 
+    };
+    
+    const newPOId = `PO-${Math.floor(8000 + Math.random() * 1000)}`;
+    
+    // Save to Global Store
+    addOrder({
+      id: newPOId,
+      supplier: vendorNames[vendor] || vendor,
+      date: date,
+      amount: `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      status: 'Pending'
+    });
+
     const toastId = toast.loading('Creating Purchase Order...');
     setTimeout(() => {
-      toast.success('Purchase Order PO-8473 Created!', { id: toastId });
+      toast.success(`Purchase Order ${newPOId} Created!`, { id: toastId });
       navigate('/po');
-    }, 1500);
+    }, 800);
   };
 
   return (
@@ -82,7 +94,6 @@ export default function CreatePO() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Vendor & Details */}
         <div className="lg:col-span-1 space-y-6">
-          
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
               <Building className="w-4 h-4 text-slate-400" /> Vendor Information
@@ -124,12 +135,10 @@ export default function CreatePO() {
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Right Column: Line Items & Totals */}
         <div className="lg:col-span-2 space-y-6">
-          
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden flex flex-col">
             <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -149,7 +158,7 @@ export default function CreatePO() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                  {items.map((item, index) => (
+                  {items.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
                       <td className="px-5 py-3 text-slate-400">
                         <button onClick={() => handleRemoveItem(item.id)} className="p-1.5 text-rose-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 rounded-md transition-colors">
@@ -205,7 +214,6 @@ export default function CreatePO() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
