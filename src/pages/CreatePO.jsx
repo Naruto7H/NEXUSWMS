@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, FileText, Building, Calendar, Package, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, FileText, Building, Calendar, Package, Save, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStore } from '../context/StoreContext';
 
 export default function CreatePO() {
   const navigate = useNavigate();
-  const { addOrder } = useStore(); // Access global state
+  const { addOrder } = useStore(); 
   
   // Form State
   const [vendor, setVendor] = useState('');
@@ -15,6 +15,9 @@ export default function CreatePO() {
   const [items, setItems] = useState([
     { id: 1, description: '', sku: '', qty: 1, price: 0 }
   ]);
+
+  // Validation State
+  const [errors, setErrors] = useState({});
 
   // Derived Totals
   const subtotal = items.reduce((sum, item) => sum + (item.qty * item.price), 0);
@@ -26,18 +29,65 @@ export default function CreatePO() {
   };
 
   const handleRemoveItem = (id) => {
-    if (items.length === 1) return toast.error("You must have at least one item.");
+    if (items.length === 1) return toast.error("You must have at least one line item.");
     setItems(items.filter(item => item.id !== id));
+    
+    // Clear any errors associated with the removed item
+    if (errors.items) {
+      const newItemsErrors = { ...errors.items };
+      delete newItemsErrors[id];
+      setErrors({ ...errors, items: newItemsErrors });
+    }
   };
 
   const handleItemChange = (id, field, value) => {
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
+    
+    // Clear error dynamically as the user types
+    if (errors.items?.[id]?.[field]) {
+      const newItemsErrors = { ...errors.items };
+      delete newItemsErrors[id][field];
+      setErrors({ ...errors, items: newItemsErrors });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Vendor Validation
+    if (!vendor) newErrors.vendor = "Please select a supplier.";
+    
+    // Date Validation
+    if (!expectedDate) {
+      newErrors.expectedDate = "Expected delivery date is required.";
+    } else if (new Date(expectedDate) < new Date(date)) {
+      newErrors.expectedDate = "Delivery cannot be scheduled before the order date.";
+    }
+
+    // Items Validation
+    const itemErrors = {};
+    items.forEach((item) => {
+      const iErrors = {};
+      if (!item.description.trim()) iErrors.description = "Required";
+      if (item.qty <= 0) iErrors.qty = "Invalid";
+      if (Object.keys(iErrors).length > 0) itemErrors[item.id] = iErrors;
+    });
+
+    if (Object.keys(itemErrors).length > 0) {
+      newErrors.items = itemErrors;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!vendor) return toast.error("Please select a vendor.");
-    if (items.some(i => !i.description || i.qty <= 0)) return toast.error("Please fill out all item fields correctly.");
+    
+    if (!validateForm()) {
+      toast.error("Please fix the highlighted errors before submitting.");
+      return;
+    }
     
     // Map Vendor ID to Name
     const vendorNames = { 
@@ -58,9 +108,9 @@ export default function CreatePO() {
       status: 'Pending'
     });
 
-    const toastId = toast.loading('Creating Purchase Order...');
+    const toastId = toast.loading('Processing Purchase Order...');
     setTimeout(() => {
-      toast.success(`Purchase Order ${newPOId} Created!`, { id: toastId });
+      toast.success(`Purchase Order ${newPOId} created successfully!`, { id: toastId });
       navigate('/po');
     }, 800);
   };
@@ -92,6 +142,7 @@ export default function CreatePO() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
         {/* Left Column: Vendor & Details */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-5">
@@ -103,8 +154,15 @@ export default function CreatePO() {
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Select Supplier *</label>
                 <select 
                   value={vendor}
-                  onChange={(e) => setVendor(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white"
+                  onChange={(e) => {
+                    setVendor(e.target.value);
+                    if (errors.vendor) setErrors({ ...errors, vendor: null });
+                  }}
+                  className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-lg p-2.5 text-sm outline-none transition-colors ${
+                    errors.vendor 
+                      ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-rose-900 dark:text-rose-100' 
+                      : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white'
+                  }`}
                 >
                   <option value="">-- Choose Supplier --</option>
                   <option value="VND-001">Al Ain Farms</option>
@@ -112,10 +170,15 @@ export default function CreatePO() {
                   <option value="VND-003">Malabar Plaza</option>
                   <option value="VND-005">P&G Trading</option>
                 </select>
+                {errors.vendor && (
+                  <p className="mt-1.5 text-xs font-medium text-rose-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> {errors.vendor}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Supplier Reference / Quote #</label>
-                <input type="text" placeholder="e.g. QTE-99381" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white" />
+                <input type="text" placeholder="e.g. QTE-99381" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white transition-colors" />
               </div>
             </div>
           </div>
@@ -127,11 +190,33 @@ export default function CreatePO() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Order Date</label>
-                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white" />
+                <input 
+                  type="date" 
+                  value={date} 
+                  onChange={(e) => setDate(e.target.value)} 
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white transition-colors" 
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Expected Delivery Date *</label>
-                <input type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white" />
+                <input 
+                  type="date" 
+                  value={expectedDate} 
+                  onChange={(e) => {
+                    setExpectedDate(e.target.value);
+                    if (errors.expectedDate) setErrors({ ...errors, expectedDate: null });
+                  }} 
+                  className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-lg p-2.5 text-sm outline-none transition-colors ${
+                    errors.expectedDate 
+                      ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-rose-900 dark:text-rose-100' 
+                      : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white'
+                  }`} 
+                />
+                {errors.expectedDate && (
+                  <p className="mt-1.5 text-xs font-medium text-rose-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> {errors.expectedDate}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -158,37 +243,74 @@ export default function CreatePO() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                  {items.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
-                      <td className="px-5 py-3 text-slate-400">
-                        <button onClick={() => handleRemoveItem(item.id)} className="p-1.5 text-rose-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 rounded-md transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                      <td className="px-5 py-3">
-                        <div className="flex flex-col gap-1.5">
-                          <input type="text" placeholder="Item description" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} className="w-full bg-transparent border border-slate-200 dark:border-slate-700 rounded-md p-1.5 text-sm outline-none focus:border-indigo-500 text-slate-900 dark:text-white placeholder-slate-400" />
-                          <input type="text" placeholder="SKU/Code" value={item.sku} onChange={(e) => handleItemChange(item.id, 'sku', e.target.value)} className="w-full bg-transparent border border-slate-200 dark:border-slate-700 rounded-md p-1.5 text-xs outline-none focus:border-indigo-500 text-slate-500 placeholder-slate-400" />
-                        </div>
-                      </td>
-                      <td className="px-5 py-3">
-                        <input type="number" min="1" value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-1.5 text-sm outline-none focus:border-indigo-500 text-slate-900 dark:text-white" />
-                      </td>
-                      <td className="px-5 py-3">
-                        <input type="number" min="0" step="0.01" value={item.price} onChange={(e) => handleItemChange(item.id, 'price', Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-1.5 text-sm outline-none focus:border-indigo-500 text-slate-900 dark:text-white" />
-                      </td>
-                      <td className="px-5 py-3 text-right font-medium text-slate-900 dark:text-white">
-                        ${(item.qty * item.price).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
+                  {items.map((item) => {
+                    const itemError = errors.items?.[item.id] || {};
+                    return (
+                      <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 group">
+                        <td className="px-5 py-4 text-slate-400 align-top pt-5">
+                          <button onClick={() => handleRemoveItem(item.id)} className="p-1.5 text-rose-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 rounded-md transition-colors opacity-0 group-hover:opacity-100">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                        <td className="px-5 py-4 align-top">
+                          <div className="flex flex-col gap-1.5">
+                            <input 
+                              type="text" 
+                              placeholder="Item description *" 
+                              value={item.description} 
+                              onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} 
+                              className={`w-full bg-transparent border rounded-md p-1.5 text-sm outline-none transition-colors placeholder-slate-400 ${
+                                itemError.description ? 'border-rose-500 text-rose-900 dark:text-rose-100 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:border-indigo-500 text-slate-900 dark:text-white'
+                              }`} 
+                            />
+                            {itemError.description && <span className="text-[10px] text-rose-500 font-medium px-1">{itemError.description}</span>}
+                            
+                            <input 
+                              type="text" 
+                              placeholder="SKU/Code (Optional)" 
+                              value={item.sku} 
+                              onChange={(e) => handleItemChange(item.id, 'sku', e.target.value)} 
+                              className="w-full bg-transparent border border-slate-200 dark:border-slate-700 rounded-md p-1.5 text-xs outline-none focus:border-indigo-500 text-slate-500 placeholder-slate-400 transition-colors" 
+                            />
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 align-top">
+                          <div className="flex flex-col gap-1.5">
+                            <input 
+                              type="number" 
+                              min="1" 
+                              value={item.qty} 
+                              onChange={(e) => handleItemChange(item.id, 'qty', Number(e.target.value))} 
+                              className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-md p-1.5 text-sm outline-none transition-colors ${
+                                itemError.qty ? 'border-rose-500 text-rose-900 dark:text-rose-100 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:border-indigo-500 text-slate-900 dark:text-white'
+                              }`} 
+                            />
+                            {itemError.qty && <span className="text-[10px] text-rose-500 font-medium px-1">{itemError.qty}</span>}
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 align-top">
+                          <input 
+                            type="number" 
+                            min="0" 
+                            step="0.01" 
+                            value={item.price} 
+                            onChange={(e) => handleItemChange(item.id, 'price', Number(e.target.value))} 
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-1.5 text-sm outline-none focus:border-indigo-500 text-slate-900 dark:text-white transition-colors" 
+                          />
+                        </td>
+                        <td className="px-5 py-4 text-right font-medium text-slate-900 dark:text-white align-top pt-5">
+                          ${(item.qty * item.price).toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
             
             <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
-              <button onClick={handleAddItem} className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
-                <Plus className="w-4 h-4" /> Add another item
+              <button onClick={handleAddItem} type="button" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1 transition-colors">
+                <Plus className="w-4 h-4" /> Add another line item
               </button>
             </div>
           </div>
@@ -197,7 +319,11 @@ export default function CreatePO() {
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row justify-between gap-8">
             <div className="flex-1">
               <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Order Notes & Terms</label>
-              <textarea placeholder="Special instructions for delivery..." rows={4} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white resize-none"></textarea>
+              <textarea 
+                placeholder="Special instructions for delivery..." 
+                rows={4} 
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white resize-none transition-colors"
+              ></textarea>
             </div>
             <div className="w-full sm:w-64 space-y-3 pt-2 sm:pt-0">
               <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
