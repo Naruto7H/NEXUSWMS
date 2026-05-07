@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { inventoryApi } from '../services/api';
 import { Search, Filter, Download, AlertTriangle, ScanLine, ArrowUpDown, MoreHorizontal, X, Edit3, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -17,19 +17,17 @@ export default function Inventory() {
   const [selectedIds, setSelectedIds] = useState([]);
   
   const location = useLocation();
-  const navigate = useNavigate();
+  
+  // A lock to ensure the scanner only auto-opens ONCE per page visit
   const scannerTriggered = useRef(false);
 
-  // Safely trigger scanner from routing state
   useEffect(() => {
+    // If we came from the Dashboard AND haven't triggered it yet...
     if (location.state?.openScanner && !scannerTriggered.current) {
-      scannerTriggered.current = true;
+      scannerTriggered.current = true; // Lock it so it never auto-triggers again
       setIsScannerOpen(true);
-      
-      // Clear router state safely to prevent re-triggering
-      navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location, navigate]);
+  }, [location.state]);
 
   useEffect(() => {
     inventoryApi.getInventory().then(data => {
@@ -276,12 +274,4 @@ export default function Inventory() {
 
       <BarcodeScannerModal 
         isOpen={isScannerOpen} 
-        onClose={() => {
-          setIsScannerOpen(false);
-          scannerTriggered.current = false; // Reset trigger so it can be opened again later
-        }} 
-        onScanSuccess={handleScanSuccess} 
-      />
-    </div>
-  );
-}
+        on
