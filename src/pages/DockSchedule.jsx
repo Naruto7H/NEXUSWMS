@@ -1,37 +1,16 @@
 import React, { useState } from 'react';
-import { Truck, Clock, Calendar, CheckCircle2, AlertTriangle, MoreVertical, Plus, Filter, Package } from 'lucide-react';
+import { Truck, Clock, Calendar, MoreVertical, Plus, Filter, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-// Initial Mock Data
-const initialTasks = {
-  'scheduled': [
-    { id: 'SHP-101', supplier: 'Al Ain Farms', time: '08:00 AM', items: 120, priority: 'normal' },
-    { id: 'SHP-102', supplier: 'TechCorp', time: '10:30 AM', items: 45, priority: 'high' },
-  ],
-  'at-dock': [
-    { id: 'SHP-103', supplier: 'Malabar Plaza', time: '07:15 AM', items: 85, priority: 'normal', dock: 'Dock A' },
-  ],
-  'unloading': [
-    { id: 'SHP-104', supplier: 'P&G Trading', time: '06:00 AM', items: 340, priority: 'high', dock: 'Dock B', progress: 65 },
-  ],
-  'putaway': [
-    { id: 'SHP-105', supplier: 'Bismi Briyani', time: 'Yesterday', items: 50, priority: 'normal', progress: 100 },
-  ]
-};
+import { useStore } from '../context/StoreContext';
 
 export default function DockSchedule() {
-  const [columns, setColumns] = useState(initialTasks);
+  const { dockTasks, updateDockTasks } = useStore(); // Read from Global State
   const [draggedTask, setDraggedTask] = useState(null);
 
-  // --- Drag and Drop Handlers ---
   const handleDragStart = (e, task, sourceColumn) => {
     setDraggedTask({ ...task, sourceColumn });
-    // Make the dragged item semi-transparent
     e.dataTransfer.effectAllowed = 'move';
-    // Firefox requires this to enable drag
     e.dataTransfer.setData('text/plain', task.id); 
-    
-    // Optional: Ghost image styling could go here
     setTimeout(() => { e.target.style.opacity = '0.5'; }, 0);
   };
 
@@ -41,7 +20,7 @@ export default function DockSchedule() {
   };
 
   const handleDragOver = (e) => {
-    e.preventDefault(); // Necessary to allow dropping
+    e.preventDefault(); 
     e.dataTransfer.dropEffect = 'move';
   };
 
@@ -49,27 +28,21 @@ export default function DockSchedule() {
     e.preventDefault();
     if (!draggedTask || draggedTask.sourceColumn === targetColumn) return;
 
-    setColumns(prev => {
-      // Remove from source
-      const sourceList = prev[draggedTask.sourceColumn].filter(t => t.id !== draggedTask.id);
-      
-      // Add to destination
-      const targetList = [...prev[targetColumn], { ...draggedTask }];
-      
-      // Remove the temporary sourceColumn property we added for tracking
-      delete targetList[targetList.length - 1].sourceColumn;
+    // Calculate new columns
+    const sourceList = dockTasks[draggedTask.sourceColumn].filter(t => t.id !== draggedTask.id);
+    const targetList = [...dockTasks[targetColumn], { ...draggedTask }];
+    delete targetList[targetList.length - 1].sourceColumn;
 
-      return {
-        ...prev,
-        [draggedTask.sourceColumn]: sourceList,
-        [targetColumn]: targetList
-      };
+    // Update global store
+    updateDockTasks({
+      ...dockTasks,
+      [draggedTask.sourceColumn]: sourceList,
+      [targetColumn]: targetList
     });
 
     toast.success(`Moved ${draggedTask.id} to ${formatColumnTitle(targetColumn)}`);
   };
 
-  // --- Helper Functions ---
   const formatColumnTitle = (key) => {
     return key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
@@ -104,7 +77,8 @@ export default function DockSchedule() {
       {/* Kanban Board Container */}
       <div className="flex-1 flex overflow-x-auto gap-6 pb-4 snap-x">
         
-        {Object.entries(columns).map(([columnKey, tasks]) => (
+        {/* Mapping through dockTasks from Store */}
+        {Object.entries(dockTasks).map(([columnKey, tasks]) => (
           <div 
             key={columnKey}
             className="flex-shrink-0 w-80 flex flex-col bg-slate-100/50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-700/50 snap-start"
@@ -187,7 +161,6 @@ export default function DockSchedule() {
             </div>
           </div>
         ))}
-
       </div>
     </div>
   );
