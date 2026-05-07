@@ -274,4 +274,9 @@ export default function Inventory() {
 
       <BarcodeScannerModal 
         isOpen={isScannerOpen} 
-        on
+        onClose={() => setIsScannerOpen(false)} 
+        onScanSuccess={handleScanSuccess} 
+      />
+    </div>
+  );
+}
