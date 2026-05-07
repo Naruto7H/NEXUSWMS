@@ -6,7 +6,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
-// Initial structure with embedded mock item data for the search feature
 const initialWarehouseData = [
   { id: 'A', name: 'Aisle A (Dry Goods)', congestionRisk: 15, racks: [
     { id: 'A1', capacity: 95, items: 142, status: 'critical', inventory: [{ sku: 'SKU-2291', name: 'Basmati Rice Premium 5kg', qty: 142 }] },
@@ -38,7 +37,6 @@ export default function WarehouseMap() {
   const [isTransferMode, setIsTransferMode] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
 
-  // Real-time simulation for AI congestion risk
   useEffect(() => {
     const interval = setInterval(() => {
       setWarehouseData(prev => prev.map(aisle => ({
@@ -55,7 +53,6 @@ export default function WarehouseMap() {
         setIsTransferMode(false);
         return;
       }
-      // Execute Mock Transfer
       toast.success(`Transferred inventory from ${selectedRack.id} to ${rack.id}`);
       setIsTransferMode(false);
       setSelectedRack(null);
@@ -77,7 +74,6 @@ export default function WarehouseMap() {
     return 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400';
   };
 
-  // Search Logic
   const query = searchQuery.toLowerCase();
   const searchResults = useMemo(() => {
     if (!query) return new Set();
@@ -94,12 +90,12 @@ export default function WarehouseMap() {
   }, [query, warehouseData]);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full min-h-[calc(100vh-10rem)]">
+    <div className="flex flex-col lg:flex-row gap-6 h-full min-h-[calc(100vh-10rem)] w-full">
       
-      {/* Left Side: Map UI */}
-      <div className={`flex-1 flex flex-col transition-all duration-500 ${selectedRack ? 'lg:mr-0' : ''}`}>
+      {/* Left Side: Map UI - ADDED min-w-0 HERE */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-500 ${selectedRack ? 'lg:mr-0' : ''}`}>
         
-        {/* Header & Controls (FIXED ALIGNMENT) */}
+        {/* Header & Controls */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="min-w-[250px]">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
@@ -152,8 +148,8 @@ export default function WarehouseMap() {
           )}
         </AnimatePresence>
 
-        {/* Interactive Warehouse Grid */}
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-6 flex-1 overflow-auto relative">
+        {/* Interactive Warehouse Grid - ADDED overflow-x-auto HERE */}
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-6 flex-1 overflow-x-auto relative">
           
           {isTransferMode && (
              <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 shadow-xl z-50 animate-pulse">
@@ -215,14 +211,14 @@ export default function WarehouseMap() {
         </div>
       </div>
 
-      {/* Right Side: Detail Drawer */}
+      {/* Right Side: Detail Drawer - ENSURED max-h so it stays in viewport */}
       <AnimatePresence>
         {selectedRack && !isTransferMode && (
           <motion.div 
             initial={{ x: 300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 300, opacity: 0 }}
-            className="w-full lg:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden shrink-0 lg:sticky lg:top-0 h-auto lg:max-h-full"
+            className="w-full lg:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden shrink-0 lg:sticky lg:top-0 h-auto lg:max-h-[calc(100vh-8rem)]"
           >
-            <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30 shrink-0">
               <div>
                 <h3 className="font-bold text-xl text-slate-900 dark:text-white tracking-tight">Location {selectedRack.id}</h3>
                 <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-0.5">Physical Zone Analytics</p>
@@ -262,17 +258,16 @@ export default function WarehouseMap() {
                 </div>
               </div>
 
-              {/* Dynamic Items List */}
               <div className="space-y-3">
                 <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest border-b border-slate-100 dark:border-slate-700 pb-2">Stored SKUs</h4>
                 {selectedRack.inventory && selectedRack.inventory.length > 0 ? (
                   selectedRack.inventory.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between p-3 border border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 shadow-sm">
-                      <div>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">{item.name}</p>
+                      <div className="min-w-0 pr-3">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.name}</p>
                         <p className="text-[10px] text-slate-400 font-bold uppercase">{item.sku}</p>
                       </div>
-                      <p className="text-xs font-black text-indigo-600 dark:text-indigo-400">{item.qty} units</p>
+                      <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{item.qty} units</p>
                     </div>
                   ))
                 ) : (
