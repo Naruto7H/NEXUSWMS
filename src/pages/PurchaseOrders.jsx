@@ -10,7 +10,7 @@ import Pagination from '../components/ui/Pagination';
 import { useStore } from '../context/StoreContext';
 
 export default function PurchaseOrders() {
-  const { orders, updateOrderStatuses } = useStore(); // Read from Global State
+  const { orders, updateOrderStatuses } = useStore();
   const [selectedIds, setSelectedIds] = useState([]);
   const [search, setSearch] = useState('');
 
@@ -103,7 +103,7 @@ export default function PurchaseOrders() {
           </button>
         </div>
         
-        {/* DESKTOP VIEW (Table) */}
+        {/* DESKTOP VIEW */}
         <div className="hidden md:block overflow-x-auto min-h-[400px]">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
@@ -169,7 +169,7 @@ export default function PurchaseOrders() {
           </table>
         </div>
 
-        {/* MOBILE VIEW (Cards) */}
+        {/* MOBILE VIEW */}
         <div className="md:hidden flex flex-col gap-4 p-4 bg-slate-50/50 dark:bg-slate-900/10 min-h-[400px]">
            <div className="flex items-center gap-2 mb-2 px-1">
             <input 
@@ -238,21 +238,21 @@ export default function PurchaseOrders() {
         </div>
       </div>
 
-      {/* Floating Action Bar */}
+      {/* NEW PERFECT LAYOUT: Floating Action Bar */}
       {selectedIds.length > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-800 border border-slate-800 dark:border-slate-700 shadow-2xl rounded-2xl px-5 py-3 flex items-center gap-4 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300 w-[90%] sm:w-auto max-w-lg">
-          <div className="flex items-center gap-3 border-r border-slate-700 pr-4 sm:pr-5">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-800 border border-slate-800 dark:border-slate-700 shadow-2xl rounded-2xl px-3 py-2 sm:px-5 sm:py-3 flex items-center gap-3 sm:gap-4 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300 w-max max-w-[95vw]">
+          <div className="flex items-center gap-2 sm:gap-3 border-r border-slate-700 pr-3 sm:pr-5">
             <span className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-inner flex-shrink-0">
               {selectedIds.length}
             </span>
             <span className="text-sm font-medium text-slate-200 hidden sm:block">Selected</span>
           </div>
           
-          <div className="flex items-center gap-1 sm:gap-2 pr-2 overflow-x-auto hide-scrollbar">
-            <button onClick={handleBulkApprove} className="text-xs sm:text-sm font-medium text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 px-2 sm:px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <button onClick={handleBulkApprove} className="text-xs sm:text-sm font-medium text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10 px-2 sm:px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4" /> <span className="hidden sm:inline">Bulk Approve</span><span className="sm:hidden">Approve</span>
             </button>
-            <button onClick={handleExportSelected} className="text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 px-2 sm:px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap">
+            <button onClick={handleExportSelected} className="text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 px-2 sm:px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
               <Download className="w-4 h-4" /> <span className="hidden sm:inline">Export Selected</span><span className="sm:hidden">Export</span>
             </button>
           </div>
