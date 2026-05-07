@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { inventoryApi } from '../services/api';
 import { Search, Filter, Download, AlertTriangle, ScanLine, ArrowUpDown, MoreHorizontal, X, Edit3, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -17,13 +17,19 @@ export default function Inventory() {
   const [selectedIds, setSelectedIds] = useState([]);
   
   const location = useLocation();
+  const navigate = useNavigate();
+  const scannerTriggered = useRef(false);
 
+  // Safely trigger scanner from routing state
   useEffect(() => {
-    if (location.state?.openScanner) {
+    if (location.state?.openScanner && !scannerTriggered.current) {
+      scannerTriggered.current = true;
       setIsScannerOpen(true);
-      window.history.replaceState({}, document.title);
+      
+      // Clear router state safely to prevent re-triggering
+      navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state]);
+  }, [location, navigate]);
 
   useEffect(() => {
     inventoryApi.getInventory().then(data => {
@@ -243,7 +249,7 @@ export default function Inventory() {
         </div>
       </div>
 
-      {/* NEW PERFECT LAYOUT: Floating Action Bar */}
+      {/* Floating Action Bar */}
       {selectedIds.length > 0 && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-800 border border-slate-800 dark:border-slate-700 shadow-2xl rounded-2xl px-3 py-2 sm:px-5 sm:py-3 flex items-center gap-3 sm:gap-4 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300 w-max max-w-[95vw]">
           <div className="flex items-center gap-2 sm:gap-3 border-r border-slate-700 pr-3 sm:pr-5">
@@ -270,7 +276,10 @@ export default function Inventory() {
 
       <BarcodeScannerModal 
         isOpen={isScannerOpen} 
-        onClose={() => setIsScannerOpen(false)} 
+        onClose={() => {
+          setIsScannerOpen(false);
+          scannerTriggered.current = false; // Reset trigger so it can be opened again later
+        }} 
         onScanSuccess={handleScanSuccess} 
       />
     </div>
