@@ -17,14 +17,12 @@ export default function Inventory() {
   const [selectedIds, setSelectedIds] = useState([]);
   
   const location = useLocation();
-  
-  // A lock to ensure the scanner only auto-opens ONCE per page visit
-  const scannerTriggered = useRef(false);
+  const scannerTriggered = useRef(false); // Memory lock
 
   useEffect(() => {
-    // If we came from the Dashboard AND haven't triggered it yet...
+    // If we came from the Dashboard "Scan" button AND haven't triggered it yet during this visit...
     if (location.state?.openScanner && !scannerTriggered.current) {
-      scannerTriggered.current = true; // Lock it so it never auto-triggers again
+      scannerTriggered.current = true; // Lock it so it doesn't re-trigger if React re-renders
       setIsScannerOpen(true);
     }
   }, [location.state]);
@@ -272,11 +270,14 @@ export default function Inventory() {
         </div>
       )}
 
-      <BarcodeScannerModal 
-        isOpen={isScannerOpen} 
-        onClose={() => setIsScannerOpen(false)} 
-        onScanSuccess={handleScanSuccess} 
-      />
+      {/* Conditionally Render the Scanner Modal */}
+      {isScannerOpen && (
+        <BarcodeScannerModal 
+          isOpen={isScannerOpen} 
+          onClose={() => setIsScannerOpen(false)} 
+          onScanSuccess={handleScanSuccess} 
+        />
+      )}
     </div>
   );
 }
