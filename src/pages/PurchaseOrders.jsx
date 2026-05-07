@@ -7,19 +7,12 @@ import StatusBadge from '../components/ui/StatusBadge';
 import RequireRole from '../components/auth/RequireRole';
 import { DownloadPOButton } from '../components/pdf/PurchaseOrderPDF';
 import Pagination from '../components/ui/Pagination';
-
-const initialOrders = [
-  { id: 'PO-8472', supplier: 'Al Ain Farms', date: '2026-04-28', amount: '$12,450', status: 'Pending' },
-  { id: 'PO-8471', supplier: 'TechCorp Electronics', date: '2026-04-27', amount: '$45,000', status: 'Approved' },
-  { id: 'PO-8470', supplier: 'Malabar Plaza', date: '2026-04-26', amount: '$3,250', status: 'Shipped' },
-  { id: 'PO-8469', supplier: 'Nexus Packaging Co.', date: '2026-04-25', amount: '$4,120', status: 'Delivered' },
-];
+import { useStore } from '../context/StoreContext';
 
 export default function PurchaseOrders() {
-  const [orders, setOrders] = useState(initialOrders);
+  const { orders, updateOrderStatuses } = useStore(); // Read from Global State
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // --- Bulk Selection Logic ---
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       setSelectedIds(orders.map(o => o.id));
@@ -37,28 +30,25 @@ export default function PurchaseOrders() {
   };
 
   const handleBulkApprove = () => {
-    // 1. Find how many selected orders are actually "Pending"
-    const pendingSelectedCount = orders.filter(o => selectedIds.includes(o.id) && o.status === 'Pending').length;
+    const pendingSelectedIds = orders
+      .filter(o => selectedIds.includes(o.id) && o.status === 'Pending')
+      .map(o => o.id);
 
-    if (pendingSelectedCount === 0) {
+    if (pendingSelectedIds.length === 0) {
       toast.error('No pending orders selected to approve.');
       setSelectedIds([]);
       return;
     }
 
-    // 2. Only update the status if it's currently Pending
-    setOrders(orders.map(o => 
-      (selectedIds.includes(o.id) && o.status === 'Pending') 
-        ? { ...o, status: 'Approved' } 
-        : o
-    ));
+    // Update global state
+    updateOrderStatuses(pendingSelectedIds, 'Approved');
     
-    toast.success(`${pendingSelectedCount} purchase order(s) approved.`);
-    setSelectedIds([]); // Clear selection after action
+    toast.success(`${pendingSelectedIds.length} purchase order(s) approved.`);
+    setSelectedIds([]); 
   };
 
   const handleApprove = (id) => {
-    setOrders(orders.map(o => o.id === id ? { ...o, status: 'Approved' } : o));
+    updateOrderStatuses([id], 'Approved');
     toast.success(`Purchase Order ${id} approved.`);
   };
 
@@ -76,7 +66,7 @@ export default function PurchaseOrders() {
     link.click();
 
     toast.success(`${selectedIds.length} orders exported successfully.`);
-    setSelectedIds([]); // Clear selection after export
+    setSelectedIds([]); 
   };
 
   return (
@@ -107,7 +97,6 @@ export default function PurchaseOrders() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                {/* Master Checkbox */}
                 <th className="px-6 py-4 w-12">
                   <input 
                     type="checkbox" 
@@ -135,7 +124,6 @@ export default function PurchaseOrders() {
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
               {orders.map((order) => (
                 <tr key={order.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${selectedIds.includes(order.id) ? 'bg-indigo-50/50 dark:bg-indigo-500/5' : ''}`}>
-                  {/* Row Checkbox */}
                   <td className="px-6 py-4">
                     <input 
                       type="checkbox" 
@@ -171,7 +159,7 @@ export default function PurchaseOrders() {
         </div>
 
         <div className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
-          <Pagination totalItems={32} itemsPerPage={orders.length} />
+          <Pagination totalItems={orders.length} itemsPerPage={orders.length} />
         </div>
       </div>
 
