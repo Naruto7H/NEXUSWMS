@@ -2,44 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  /* Firefox Support */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
+@layer utilities {
+  /* Completely hide scrollbars for specific containers (like action bars) */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
   }
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
 
-  /* WebKit Browsers (Chrome, Edge, Safari) */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
+/* Global Premium Scrollbar Styling 
+  Applies to tables, sidebars, and main page content 
+*/
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
 
-  ::-webkit-scrollbar-track {
-    background: transparent; 
-  }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  /* The border-transparent and bg-clip-padding trick creates 
-    a "floating" scrollbar that doesn't touch the absolute edges 
-  */
-  ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full border-[3px] border-solid border-transparent bg-clip-padding;
-  }
+::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.4); /* Slate-400 with opacity */
+  border-radius: 10px;
+}
 
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-400;
-  }
+/* Dark mode scrollbar thumb */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(71, 85, 105, 0.6); /* Slate-600 with opacity */
+}
 
-  /* Dark Mode Overrides */
-  .dark * {
-    scrollbar-color: #475569 transparent;
-  }
+/* Hover effects for scrollbar */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.8); /* Slate-500 */
+}
 
-  .dark ::-webkit-scrollbar-thumb {
-    @apply bg-slate-600;
-  }
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.8); /* Slate-400 */
+}
 
-  .dark ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-500;
-  }
+/* Smooth transition for theme toggling */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
