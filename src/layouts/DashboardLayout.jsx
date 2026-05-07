@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Package, ShoppingCart, Truck, Settings, Search, 
@@ -18,6 +18,10 @@ export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Refs for "Click Outside" detection
+  const notifRef = useRef(null);
+  const profileRef = useRef(null);
+
   const notifications = [
     { id: 1, title: 'Low Stock Alert', desc: 'FMCG Category: SKU-8492 is below minimum threshold.', time: '10 mins ago', icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
     { id: 2, title: 'PO Approved', desc: 'Purchase Order #4092 for Fresh Produce has been approved.', time: '1 hour ago', icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
@@ -26,12 +30,17 @@ export default function DashboardLayout() {
   
   const unreadCount = notifications.length;
 
+  // 1. Close dropdowns and mobile sidebar on route change
   useEffect(() => {
+    setIsNotifOpen(false);
+    setIsProfileOpen(false);
+    
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
   }, [location?.pathname]); 
 
+  // 2. Global Keyboard Shortcuts (Ctrl+K)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -42,6 +51,33 @@ export default function DashboardLayout() {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // 3. Click Outside & Escape Key Listener
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setIsNotifOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape') {
+        setIsNotifOpen(false);
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscKey);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscKey);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -137,10 +173,11 @@ export default function DashboardLayout() {
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            <div className="relative flex-shrink-0">
+            {/* Notification Dropdown wrapper with Ref attached */}
+            <div className="relative flex-shrink-0" ref={notifRef}>
               <button 
                 onClick={() => { setIsNotifOpen(!isNotifOpen); setIsProfileOpen(false); }}
-                className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors focus:outline-none"
+                className={`relative p-2 rounded-full transition-colors focus:outline-none ${isNotifOpen ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500'}`}
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -181,10 +218,11 @@ export default function DashboardLayout() {
 
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-1 flex-shrink-0"></div>
 
-            <div className="relative flex-shrink-0">
+            {/* Profile Dropdown wrapper with Ref attached */}
+            <div className="relative flex-shrink-0" ref={profileRef}>
               <button 
                 onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false); }}
-                className="flex items-center gap-2 focus:outline-none rounded-full ring-2 ring-transparent hover:ring-indigo-500 transition-all flex-shrink-0"
+                className={`flex items-center gap-2 focus:outline-none rounded-full ring-2 transition-all flex-shrink-0 ${isProfileOpen ? 'ring-indigo-500' : 'ring-transparent hover:ring-indigo-500'}`}
               >
                 <img 
                   className="w-8 h-8 min-w-[2rem] rounded-full object-cover bg-slate-200 dark:bg-slate-700 flex-shrink-0" 
