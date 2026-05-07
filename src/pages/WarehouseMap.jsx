@@ -38,7 +38,7 @@ export default function WarehouseMap() {
   const [isTransferMode, setIsTransferMode] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
 
-  // Real-time simulation
+  // Real-time simulation for AI congestion risk
   useEffect(() => {
     const interval = setInterval(() => {
       setWarehouseData(prev => prev.map(aisle => ({
@@ -99,29 +99,29 @@ export default function WarehouseMap() {
       {/* Left Side: Map UI */}
       <div className={`flex-1 flex flex-col transition-all duration-500 ${selectedRack ? 'lg:mr-0' : ''}`}>
         
-        {/* Header & Controls */}
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
-          <div>
+        {/* Header & Controls (FIXED ALIGNMENT) */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="min-w-[250px]">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <Map className="w-6 h-6 text-indigo-500" /> Live Heatmap
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Real-time spatial utilization & AI congestion mapping.</p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full lg:w-auto">
+            <div className="relative w-full sm:w-auto shrink-0">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input 
                 type="text" 
                 placeholder="Find SKU or Rack ID..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full sm:w-64 pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white shadow-sm"
+                className="w-full sm:w-64 pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white shadow-sm transition-all"
               />
             </div>
             <button 
               onClick={() => setAiEnabled(!aiEnabled)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm border ${aiEnabled ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
+              className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm border ${aiEnabled ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
             >
               <Sparkles className="w-4 h-4" /> AI Insights {aiEnabled ? 'On' : 'Off'}
             </button>
@@ -143,7 +143,7 @@ export default function WarehouseMap() {
                 </div>
                 <div>
                   <h4 className="font-bold text-sm">Predictive Logistics Alert</h4>
-                  <p className="text-xs text-purple-100 mt-0.5">
+                  <p className="text-xs text-purple-100 mt-0.5 leading-snug">
                     <strong>Aisle B</strong> is predicted to reach 95% congestion in 45 minutes due to 3 scheduled FMCG dock arrivals. Suggest routing put-away tasks to Aisle A.
                   </p>
                 </div>
@@ -158,7 +158,7 @@ export default function WarehouseMap() {
           {isTransferMode && (
              <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 shadow-xl z-50 animate-pulse">
                <ArrowRightLeft className="w-4 h-4" /> Select destination rack for transfer
-               <button onClick={() => setIsTransferMode(false)} className="ml-2 hover:text-rose-400"><X className="w-4 h-4" /></button>
+               <button onClick={() => setIsTransferMode(false)} className="ml-2 hover:text-rose-400 transition-colors"><X className="w-4 h-4" /></button>
              </div>
           )}
 
@@ -220,14 +220,14 @@ export default function WarehouseMap() {
         {selectedRack && !isTransferMode && (
           <motion.div 
             initial={{ x: 300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 300, opacity: 0 }}
-            className="w-full lg:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden shrink-0"
+            className="w-full lg:w-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden shrink-0 lg:sticky lg:top-0 h-auto lg:max-h-full"
           >
             <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
               <div>
                 <h3 className="font-bold text-xl text-slate-900 dark:text-white tracking-tight">Location {selectedRack.id}</h3>
                 <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-0.5">Physical Zone Analytics</p>
               </div>
-              <button onClick={() => setSelectedRack(null)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-400">
+              <button onClick={() => setSelectedRack(null)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-400 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -267,7 +267,7 @@ export default function WarehouseMap() {
                 <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest border-b border-slate-100 dark:border-slate-700 pb-2">Stored SKUs</h4>
                 {selectedRack.inventory && selectedRack.inventory.length > 0 ? (
                   selectedRack.inventory.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 border border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800">
+                    <div key={idx} className="flex items-center justify-between p-3 border border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 shadow-sm">
                       <div>
                         <p className="text-sm font-bold text-slate-900 dark:text-white">{item.name}</p>
                         <p className="text-[10px] text-slate-400 font-bold uppercase">{item.sku}</p>
@@ -276,14 +276,14 @@ export default function WarehouseMap() {
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-slate-500 text-center py-4">No active SKUs in this rack.</p>
+                  <p className="text-sm text-slate-500 text-center py-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">No active SKUs in this rack.</p>
                 )}
               </div>
             </div>
 
             {/* Action Footer */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 grid grid-cols-2 gap-3">
-              <button onClick={handleAudit} className="flex items-center justify-center gap-2 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold uppercase rounded-xl hover:bg-slate-100 transition-all border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 grid grid-cols-2 gap-3 shrink-0">
+              <button onClick={handleAudit} className="flex items-center justify-center gap-2 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold uppercase rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm">
                 <ClipboardCheck className="w-4 h-4" /> Audit
               </button>
               <button onClick={() => setIsTransferMode(true)} className="flex items-center justify-center gap-2 py-2.5 bg-indigo-600 text-white text-xs font-bold uppercase rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20">
