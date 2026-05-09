@@ -24,10 +24,17 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 // A reusable loading fallback utilizing your existing skeleton component
 const PageLoader = () => (
-  <div className="w-full h-full flex flex-col gap-4 p-6">
+  <div className="w-full h-full flex flex-col gap-4 p-6 animate-in fade-in duration-300">
     <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mb-4"></div>
     <TableSkeleton rows={5} />
   </div>
+);
+
+// HIGH-ORDER COMPONENT: Wraps lazy components in Suspense automatically
+const Loadable = (Component) => (props) => (
+  <Suspense fallback={<PageLoader />}>
+    <Component {...props} />
+  </Suspense>
 );
 
 export default function App() {
@@ -38,10 +45,7 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
-      {/* 
-        Protected Dashboard Routes 
-        FIXED: Added the allowedRoles prop to prevent the app from crashing 
-      */}
+      {/* Protected Dashboard Routes */}
       <Route path="/" element={
         <RequireRole allowedRoles={['Admin', 'Central Buyer', 'Warehouse Supervisor']}>
           <DashboardLayout />
@@ -51,72 +55,22 @@ export default function App() {
         {/* Redirect root to dashboard */}
         <Route index element={<Navigate to="/dashboard" replace />} />
 
-        {/* Lazy Loaded Routes wrapped in Suspense */}
-        <Route path="dashboard" element={
-          <Suspense fallback={<PageLoader />}>
-            <Dashboard />
-          </Suspense>
-        } />
-        
-        <Route path="inventory" element={
-          <Suspense fallback={<PageLoader />}>
-            <Inventory />
-          </Suspense>
-        } />
-        
-        <Route path="po" element={
-          <Suspense fallback={<PageLoader />}>
-            <PurchaseOrders />
-          </Suspense>
-        } />
-
-        {/* FIXED: Re-added the Create PO Route */}
-        <Route path="po/new" element={
-          <Suspense fallback={<PageLoader />}>
-            <CreatePO />
-          </Suspense>
-        } />
-        
-        <Route path="suppliers" element={
-          <Suspense fallback={<PageLoader />}>
-            <Suppliers />
-          </Suspense>
-        } />
-        
-        <Route path="schedule" element={
-          <Suspense fallback={<PageLoader />}>
-            <DockSchedule />
-          </Suspense>
-        } />
-        
-        <Route path="map" element={
-          <Suspense fallback={<PageLoader />}>
-            <WarehouseMap />
-          </Suspense>
-        } />
-        
-        <Route path="blank" element={
-          <Suspense fallback={<PageLoader />}>
-            <BlankPage />
-          </Suspense>
-        } />
-        
-        <Route path="uikit" element={
-          <Suspense fallback={<PageLoader />}>
-            <UIKit />
-          </Suspense>
-        } />
-        
-        <Route path="settings" element={
-          <Suspense fallback={<PageLoader />}>
-            <Settings />
-          </Suspense>
-        } />
+        {/* Clean, DRY Lazy Loaded Routes using the Loadable wrapper */}
+        <Route path="dashboard" element={Loadable(Dashboard)()} />
+        <Route path="inventory" element={Loadable(Inventory)()} />
+        <Route path="po" element={Loadable(PurchaseOrders)()} />
+        <Route path="po/new" element={Loadable(CreatePO)()} />
+        <Route path="suppliers" element={Loadable(Suppliers)()} />
+        <Route path="schedule" element={Loadable(DockSchedule)()} />
+        <Route path="map" element={Loadable(WarehouseMap)()} />
+        <Route path="blank" element={Loadable(BlankPage)()} />
+        <Route path="uikit" element={Loadable(UIKit)()} />
+        <Route path="settings" element={Loadable(Settings)()} />
       </Route>
 
-      {/* 404 Catch-All */}
+      {/* 404 Catch-All - FIXED: Respects Light/Dark mode to prevent black flash */}
       <Route path="*" element={
-        <Suspense fallback={<div className="h-screen w-screen bg-slate-900" />}>
+        <Suspense fallback={<div className="h-screen w-screen bg-slate-50 dark:bg-slate-900" />}>
           <NotFound />
         </Suspense>
       } />
